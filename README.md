@@ -37,7 +37,7 @@
 ### Tech Stack
 <p align="start">
   <a href="https://skillicons.dev">
-    <img src="https://skillicons.dev/icons?i=actix,vite,svelte,bun,nodejs,dotnet,flask,react,bootstrap,sass,tauri,express" />
+    <img src="https://skillicons.dev/icons?i=actix,vite,svelte,bun,nodejs,dotnet,flask,react,bootstrap,sass,tauri,express,graphql" />
   </a>
 </p>
 
