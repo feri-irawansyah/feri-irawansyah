@@ -15,8 +15,9 @@
 - ⚡ Fun fact **I like to learn new things.**
 
 # 💻 Programming & Tools
-<p align="left"><img  src="https://github-readme-stats.vercel.app/api/top-langs/?username=feri-irawansyah&layout=compact&langs_count=10&exclude_repo=true?&cache_seconds=60" alt="snakesystem" />
+<p align="left"><img  src="http://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=feri-irawansyah&theme=aura" alt="snakesystem" />
 <img src="https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=feri-irawansyah&theme=radical&?cache_seconds=60" alt="snakesystem" /> 
+<img src="http://github-profile-summary-cards.vercel.app/api/cards/stats?username=feri-irawansyah&theme=aura" alt="snakesystem" /> 
 </p>
 
 ### Programming Language
