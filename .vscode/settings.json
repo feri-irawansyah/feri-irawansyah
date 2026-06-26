@@ -1,17 +1,4 @@
 {
-    "material-icon-theme.folders.associations": {
-        "views": "layout",
-        "modules": "contract",
-        "repositories": "database",
-        "services": "server",
-        "schemas": "database",
-        "migrations": "database",
-        "pages": "views",
-        "style": "css",
-        "assets": "assets",
-        "uploads": "upload",
-        "dist": "dist"
-    },
     "breadcrumbs.symbolSortOrder": "name",
     "files.insertFinalNewline": true,
     "editor.rulers": [

@@ -1,61 +1,466 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+// ── Variables ──────────────────────────────────────────────────────────────
+$color-bg:        #0d0d0f;
+$color-surface:   #16181d;
+$color-border:    #2a2d35;
+$color-text:      #e8eaf0;
+$color-muted:     #8b90a0;
+$color-accent:    #6366f1;
+$color-accent-hover: #818cf8;
+$color-green:     #22c55e;
+
+$radius:  0.5rem;
+$radius-lg: 0.875rem;
+$nav-h:   60px;
+
+// ── Reset ──────────────────────────────────────────────────────────────────
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
 
 body {
-    font-family: system-ui, -apple-system, sans-serif;
-    line-height: 1.6;
-    color: #1a1a1a;
-    background: #fafafa;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    color: $color-text;
+    background: $color-bg;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-main {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-}
+a { color: $color-accent; text-decoration: none; &:hover { color: $color-accent-hover; } }
 
-.hero {
-    padding: 4rem 0;
+img { display: block; max-width: 100%; height: auto; }
 
-    h1 {
-        font-size: 3rem;
+// ── Layout ─────────────────────────────────────────────────────────────────
+.container    { max-width: 1024px; margin: 0 auto; padding: 0 1.5rem; }
+.container-sm { max-width: 720px;  margin: 0 auto; padding: 0 1.5rem; }
+
+.main-content { flex: 1; padding-top: $nav-h; }
+
+// ── Navbar ─────────────────────────────────────────────────────────────────
+.navbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: $nav-h;
+    background: rgba($color-bg, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid $color-border;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    z-index: 100;
+
+    .nav-brand {
         font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-
-    .hero-title {
-        font-size: 1.25rem;
-        color: #555;
-        margin-bottom: 1rem;
-    }
-
-    .hero-bio {
         font-size: 1rem;
-        color: #666;
-        max-width: 600px;
-    }
-}
-
-.page-not-found {
-    padding: 4rem 0;
-    text-align: center;
-
-    h1 {
-        font-size: 6rem;
-        color: #ccc;
+        color: $color-text;
+        letter-spacing: -0.02em;
+        &:hover { color: $color-accent-hover; }
     }
 
-    a {
-        display: inline-block;
-        margin-top: 1rem;
-        color: #0070f3;
-        text-decoration: none;
+    .nav-links {
+        display: flex;
+        gap: 1.5rem;
 
-        &:hover {
-            text-decoration: underline;
+        a {
+            font-size: 0.9rem;
+            color: $color-muted;
+            transition: color 0.2s;
+            &:hover, &.active { color: $color-text; }
         }
     }
 }
+
+// ── Footer ─────────────────────────────────────────────────────────────────
+.footer {
+    border-top: 1px solid $color-border;
+    padding: 2rem 0;
+    text-align: center;
+    color: $color-muted;
+    font-size: 0.875rem;
+}
+
+// ── Buttons ────────────────────────────────────────────────────────────────
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.4rem;
+    border-radius: $radius;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+
+    &.btn-primary {
+        background: $color-accent;
+        color: #fff;
+        &:hover { background: $color-accent-hover; color: #fff; }
+    }
+
+    &.btn-outline {
+        background: transparent;
+        border: 1px solid $color-border;
+        color: $color-muted;
+        &:hover { border-color: $color-accent; color: $color-text; }
+    }
+}
+
+// ── Badges ─────────────────────────────────────────────────────────────────
+.badge {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba($color-accent, 0.15);
+    color: $color-accent-hover;
+
+    &.badge-green {
+        background: rgba($color-green, 0.15);
+        color: $color-green;
+    }
+}
+
+// ── Section ────────────────────────────────────────────────────────────────
+.section {
+    padding: 5rem 0;
+
+    &.section-alt { background: $color-surface; }
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: $color-text;
+}
+
+.section-footer {
+    margin-top: 2.5rem;
+    text-align: center;
+}
+
+// ── Page header ────────────────────────────────────────────────────────────
+.page-header {
+    padding: 3rem 0 2rem;
+
+    h1 {
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+
+    p { color: $color-muted; font-size: 1.05rem; }
+}
+
+// ── Hero ───────────────────────────────────────────────────────────────────
+.hero {
+    padding: 7rem 0 5rem;
+    border-bottom: 1px solid $color-border;
+
+    .hero-inner { max-width: 640px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .hero-eyebrow {
+        font-size: 0.9rem;
+        color: $color-accent;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.75rem;
+    }
+
+    .hero-name {
+        font-size: clamp(2.5rem, 6vw, 3.5rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        margin-bottom: 0.5rem;
+    }
+
+    .hero-role {
+        font-size: 1.25rem;
+        color: $color-muted;
+        margin-bottom: 1.25rem;
+    }
+
+    .hero-bio {
+        color: $color-muted;
+        max-width: 520px;
+        margin-bottom: 2rem;
+    }
+
+    .hero-cta { display: flex; gap: 1rem; flex-wrap: wrap; }
+}
+
+// ── Cards ──────────────────────────────────────────────────────────────────
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+.card {
+    background: $color-surface;
+    border: 1px solid $color-border;
+    border-radius: $radius-lg;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+
+    &:hover {
+        border-color: $color-accent;
+        transform: translateY(-2px);
+    }
+
+    .card-img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+    }
+
+    .card-body { padding: 1.25rem; }
+
+    .card-head {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: $color-text;
+    }
+
+    .card-desc {
+        font-size: 0.9rem;
+        color: $color-muted;
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    .card-link {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: $color-accent;
+        &:hover { color: $color-accent-hover; }
+    }
+}
+
+// ── Skills ─────────────────────────────────────────────────────────────────
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+}
+
+.skill-chip {
+    background: $color-surface;
+    border: 1px solid $color-border;
+    border-radius: $radius;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    .skill-icon { width: 20px; height: 20px; object-fit: contain; }
+    .skill-name { font-size: 0.9rem; font-weight: 500; flex: 1; }
+
+    .skill-bar {
+        width: 60px;
+        height: 4px;
+        background: $color-border;
+        border-radius: 999px;
+        overflow: hidden;
+
+        .skill-fill {
+            height: 100%;
+            background: $color-accent;
+            border-radius: 999px;
+        }
+    }
+}
+
+// ── Timeline (Experience) ──────────────────────────────────────────────────
+.exp-section { margin-bottom: 4rem; }
+
+.timeline { display: flex; flex-direction: column; gap: 0; }
+
+.timeline-item {
+    display: flex;
+    gap: 1.5rem;
+    position: relative;
+    padding-bottom: 2rem;
+
+    &::before {
+        content: "";
+        position: absolute;
+        left: 7px;
+        top: 20px;
+        bottom: 0;
+        width: 2px;
+        background: $color-border;
+    }
+
+    &:last-child::before { display: none; }
+}
+
+.timeline-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: $color-accent;
+    border: 3px solid $color-bg;
+    flex-shrink: 0;
+    margin-top: 4px;
+    z-index: 1;
+}
+
+.timeline-body { flex: 1; }
+
+.timeline-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.timeline-role {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: $color-text;
+}
+
+.timeline-company {
+    font-size: 0.9rem;
+    color: $color-muted;
+    margin-bottom: 0.25rem;
+}
+
+.timeline-location { color: $color-muted; }
+
+.timeline-period {
+    font-size: 0.8rem;
+    color: $color-muted;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-desc { font-size: 0.9rem; color: $color-muted; }
+
+// ── Certifications ─────────────────────────────────────────────────────────
+.cert-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.cert-card {
+    background: $color-surface;
+    border: 1px solid $color-border;
+    border-radius: $radius-lg;
+    padding: 1.25rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+
+    .cert-img { width: 48px; height: 48px; object-fit: contain; border-radius: $radius; }
+    .cert-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.2rem; }
+    .cert-issuer { font-size: 0.85rem; color: $color-muted; }
+    .cert-date { font-size: 0.8rem; color: $color-muted; margin: 0.2rem 0 0.75rem; }
+}
+
+// ── Notes ──────────────────────────────────────────────────────────────────
+.note-list { display: flex; flex-direction: column; gap: 0; }
+
+.note-item {
+    padding: 2rem 0;
+    border-bottom: 1px solid $color-border;
+
+    &:first-child { border-top: 1px solid $color-border; }
+}
+
+.note-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.note-category {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $color-accent;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.note-date { font-size: 0.8rem; color: $color-muted; }
+
+.note-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+
+    a { color: $color-text; &:hover { color: $color-accent-hover; } }
+}
+
+.note-desc { font-size: 0.9rem; color: $color-muted; margin-bottom: 0.75rem; }
+
+.note-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+.tag {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: $color-surface;
+    border: 1px solid $color-border;
+    color: $color-muted;
+}
+
+// ── Note article ───────────────────────────────────────────────────────────
+.note-article { padding: 3rem 0; }
+
+.article-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid $color-border;
+}
+
+.article-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0.75rem 0 0.5rem;
+    line-height: 1.25;
+}
+
+.article-desc { color: $color-muted; font-size: 1.05rem; margin-bottom: 1rem; }
+
+.article-content {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: $color-muted;
+
+    p   { margin-bottom: 1.25rem; }
+    h2  { font-size: 1.4rem; font-weight: 700; color: $color-text; margin: 2rem 0 0.75rem; }
+    h3  { font-size: 1.15rem; font-weight: 600; color: $color-text; margin: 1.5rem 0 0.5rem; }
+    pre { background: $color-surface; border: 1px solid $color-border; border-radius: $radius; padding: 1rem; overflow-x: auto; margin-bottom: 1.25rem; }
+    code { font-family: "JetBrains Mono", monospace; font-size: 0.875rem; }
+    a { color: $color-accent; &:hover { color: $color-accent-hover; } }
+}
+
+// ── 404 ────────────────────────────────────────────────────────────────────
+.page-not-found, .not-found {
+    padding: 6rem 0;
+    text-align: center;
+
+    h1 { font-size: 6rem; font-weight: 800; color: $color-border; }
+    p  { color: $color-muted; margin: 1rem 0 2rem; }
+}
+
+// ── States ─────────────────────────────────────────────────────────────────
+.loading    { color: $color-muted; padding: 2rem 0; text-align: center; }
+.empty-state { color: $color-muted; padding: 3rem 0; text-align: center; }
+.error-state { color: #f87171; padding: 1rem 0; }
+

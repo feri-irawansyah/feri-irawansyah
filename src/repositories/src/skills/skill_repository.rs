@@ -18,23 +18,23 @@ impl SkillRepository for SkillRepositoryImpl {
     async fn find_all(&self) -> Result<Vec<SkillView>> {
         let rows = sqlx::query_as!(
             SkillView,
-            r#"SELECT id, name, category, level, sort_order
-               FROM skills ORDER BY category, sort_order"#
+            r#"SELECT skill_id, title, description, url_docs, image_src, progress, star, last_update
+               FROM skills ORDER BY star DESC, progress DESC"#
         )
         .fetch_all(&self.pool)
         .await?;
         Ok(rows)
     }
 
-    async fn find_by_category(&self, category: &str) -> Result<Vec<SkillView>> {
-        let rows = sqlx::query_as!(
+    async fn find_by_id(&self, skill_id: i32) -> Result<Option<SkillView>> {
+        let row = sqlx::query_as!(
             SkillView,
-            r#"SELECT id, name, category, level, sort_order
-               FROM skills WHERE category = $1 ORDER BY sort_order"#,
-            category
+            r#"SELECT skill_id, title, description, url_docs, image_src, progress, star, last_update
+               FROM skills WHERE skill_id = $1"#,
+            skill_id
         )
-        .fetch_all(&self.pool)
+        .fetch_optional(&self.pool)
         .await?;
-        Ok(rows)
+        Ok(row)
     }
 }

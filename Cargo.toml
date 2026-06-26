@@ -14,7 +14,7 @@ codegen-units = 1
 lto = true
 
 [[workspace.metadata.leptos]]
-name = "portfolio"
+name = "feri-irawansyah"
 bin-package = "views"
 lib-package = "views"
 site-root = "target/site"

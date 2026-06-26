@@ -1,8 +1,8 @@
 [package]
-name = "portfolio"
+name = "feri-irawansyah"
 
 [[workspace]]
-name = "portfolio"
+name = "feri-irawansyah"
 bin-package = "views"
 lib-package = "views"
 site-root = "target/site"

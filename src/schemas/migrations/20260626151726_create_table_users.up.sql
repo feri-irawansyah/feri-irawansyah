@@ -1,0 +1,22 @@
+CREATE TABLE users (
+    id                      SERIAL      PRIMARY KEY,
+    email                   TEXT        NOT NULL UNIQUE,
+    password                TEXT        NOT NULL,
+    fullname                TEXT        NOT NULL,
+    mobile_phone            TEXT        NOT NULL DEFAULT '',
+    picture                 TEXT,
+    google_id               TEXT        NOT NULL DEFAULT '',
+    client_category         INT         NOT NULL DEFAULT 0,
+    activate_code           TEXT        NOT NULL DEFAULT '',
+    otp_generated_link      TEXT        NOT NULL DEFAULT '',
+    otp_generated_link_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    count_resend_activation INT         NOT NULL DEFAULT 0,
+    activate_time           TIMESTAMPTZ,
+    disable_login           BOOLEAN     NOT NULL DEFAULT TRUE,
+    reset_password_key      TEXT        NOT NULL DEFAULT '',
+    reset_password_flag     BOOLEAN     NOT NULL DEFAULT FALSE,
+    reset_password_date     TIMESTAMPTZ,
+    last_login              TIMESTAMPTZ,
+    register_date           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at              TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

@@ -1,5 +1,5 @@
-pub mod contact;
-pub mod experiences;
-pub mod profile;
-pub mod projects;
+pub mod certifications;
+pub mod notes;
+pub mod portfolio;
+pub mod positions;
 pub mod skills;

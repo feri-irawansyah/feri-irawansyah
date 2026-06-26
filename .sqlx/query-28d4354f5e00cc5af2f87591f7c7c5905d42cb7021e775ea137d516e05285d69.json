@@ -1,0 +1,74 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT portfolio_id, title, slug, description, url_docs, image_src,\n                      tech as \"tech: Vec<i32>\", featured, sort_order, last_update\n               FROM portfolio WHERE featured = TRUE ORDER BY sort_order",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "portfolio_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "slug",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "url_docs",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "image_src",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "tech: Vec<i32>",
+        "type_info": "Int4Array"
+      },
+      {
+        "ordinal": 7,
+        "name": "featured",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 8,
+        "name": "sort_order",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
+        "name": "last_update",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "28d4354f5e00cc5af2f87591f7c7c5905d42cb7021e775ea137d516e05285d69"
+}

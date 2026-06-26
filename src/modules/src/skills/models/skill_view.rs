@@ -1,10 +1,14 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SkillView {
-    pub id: i32,
-    pub name: String,
-    pub category: String,
-    pub level: i16,
-    pub sort_order: i32,
+    pub skill_id: i32,
+    pub title: String,
+    pub description: String,
+    pub url_docs: String,
+    pub image_src: String,
+    pub progress: i32,
+    pub star: i32,
+    pub last_update: DateTime<Utc>,
 }

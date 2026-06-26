@@ -11,7 +11,9 @@ pub struct SkillServiceImpl {
 
 impl SkillServiceImpl {
     pub fn new(deps: SkillServiceDeps) -> Self {
-        Self { repo: deps.skill_repo }
+        Self {
+            repo: deps.skill_repo,
+        }
     }
 }
 
@@ -19,14 +21,5 @@ impl SkillServiceImpl {
 impl SkillService for SkillServiceImpl {
     async fn list(&self) -> Result<Vec<SkillView>> {
         self.repo.find_all().await
-    }
-
-    async fn grouped(&self) -> Result<Vec<(String, Vec<SkillView>)>> {
-        let all = self.repo.find_all().await?;
-        let mut map: std::collections::BTreeMap<String, Vec<SkillView>> = Default::default();
-        for s in all {
-            map.entry(s.category.clone()).or_default().push(s);
-        }
-        Ok(map.into_iter().collect())
     }
 }

@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT notes_id, category, title, slug, content, description,\n                      hashtag as \"hashtag: Vec<String>\", published, ip_address, last_update\n               FROM notes WHERE slug = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "notes_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "category",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "slug",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "content",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "hashtag: Vec<String>",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 7,
+        "name": "published",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 8,
+        "name": "ip_address",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "last_update",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "066e1e3525d1f3b736e10ba994071e6bba939ef3dc44ad87c00a1754e81c65d3"
+}

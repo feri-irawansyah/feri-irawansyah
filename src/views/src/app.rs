@@ -1,14 +1,16 @@
 use leptos::prelude::*;
 use leptos_meta::*;
 use leptos_router::{
-    components::{Route, Router, Routes},
+    components::{A, Route, Router, Routes},
     path,
 };
 
 use crate::pages::{
+    experience::ExperiencePage,
     home::HomePage,
-    projects::ProjectsPage,
     not_found::NotFoundPage,
+    notes::{NotePage, NotesPage},
+    portfolio::PortfolioPage,
 };
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
@@ -34,17 +36,35 @@ pub fn App() -> impl IntoView {
     provide_meta_context();
 
     view! {
-        <Stylesheet id="leptos" href="/pkg/views.css"/>
-        <Title text="Feri Irawansyah — Full Stack Developer"/>
-        <Meta name="description" content="Portfolio of Feri Irawansyah, Full Stack Developer"/>
+        <Stylesheet id="leptos" href="/pkg/feri-irawansyah.css"/>
+        <Title text="Feri Irawansyah — Principal Engineer"/>
+        <Meta name="description" content="Portfolio of Feri Irawansyah, Principal Engineer"/>
 
         <Router>
-            <main>
+            <header class="navbar">
+                <A href="/" attr:class="nav-brand">"Feri Irawansyah"</A>
+                <nav class="nav-links">
+                    <A href="/portfolio">"Portfolio"</A>
+                    <A href="/experience">"Experience"</A>
+                    <A href="/notes">"Notes"</A>
+                </nav>
+            </header>
+
+            <main class="main-content">
                 <Routes fallback=|| view! { <NotFoundPage/> }>
-                    <Route path=path!("/") view=HomePage/>
-                    <Route path=path!("/projects") view=ProjectsPage/>
+                    <Route path=path!("/")              view=HomePage/>
+                    <Route path=path!("/portfolio")     view=PortfolioPage/>
+                    <Route path=path!("/experience")    view=ExperiencePage/>
+                    <Route path=path!("/notes")         view=NotesPage/>
+                    <Route path=path!("/notes/:slug")   view=NotePage/>
                 </Routes>
             </main>
+
+            <footer class="footer">
+                <div class="container">
+                    <p>"© 2026 Feri Irawansyah. Built with Rust + Leptos."</p>
+                </div>
+            </footer>
         </Router>
     }
 }
