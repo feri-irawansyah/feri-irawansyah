@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [[bin]]
-name = "portfolio"
+name = "views"
 path = "src/main.rs"
 
 [lib]
@@ -16,15 +16,16 @@ repositories = { path = "../repositories", optional = true }
 services = { path = "../services", optional = true }
 schemas = { path = "../schemas", optional = true }
 
-leptos = { version = "0.7", default-features = false }
-leptos_actix = { version = "0.7", optional = true }
-leptos_meta = { version = "0.7", default-features = false }
-leptos_router = { version = "0.7", default-features = false }
+leptos = { version = "0.8.20", default-features = false }
+leptos_actix = { version = "0.8.7", optional = true }
+leptos_meta = { version = "0.8.6", default-features = false }
+leptos_router = { version = "0.8.14", default-features = false }
 
 actix-web = { version = "4", optional = true }
 actix-files = { version = "0.6", optional = true }
 
 wasm-bindgen = { version = "0.2", optional = true }
+getrandom = { version = "0.2", features = ["js"], optional = true }
 
 serde = { version = "1", features = ["derive"] }
 dotenvy = { version = "0.15", optional = true }
@@ -36,6 +37,7 @@ default = []
 hydrate = [
     "leptos/hydrate",
     "dep:wasm-bindgen",
+    "dep:getrandom",
 ]
 ssr = [
     "leptos/ssr",

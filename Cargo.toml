@@ -13,6 +13,16 @@ members = [
 codegen-units = 1
 lto = true
 
-# Required for wasm32 target — cargo-leptos sets this automatically
-[target.wasm32-unknown-unknown.dependencies]
-getrandom = { version = "0.2", features = ["js"] }
+[[workspace.metadata.leptos]]
+name = "portfolio"
+bin-package = "views"
+lib-package = "views"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+style-file = "src/views/style/main.scss"
+site-addr = "127.0.0.1:3000"
+reload-port = 3001
+browserquery = "defaults"
+env = "DEV"
+bin-features = ["ssr"]
+lib-features = ["hydrate"]
