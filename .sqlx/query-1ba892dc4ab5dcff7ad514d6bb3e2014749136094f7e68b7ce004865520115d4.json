@@ -1,0 +1,82 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, title, slug, summary, description, tech_stack, repo_url, demo_url, image_url, featured, sort_order\n               FROM projects WHERE slug = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "slug",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "summary",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "tech_stack",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 6,
+        "name": "repo_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "demo_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "image_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "featured",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 10,
+        "name": "sort_order",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "1ba892dc4ab5dcff7ad514d6bb3e2014749136094f7e68b7ce004865520115d4"
+}

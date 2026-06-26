@@ -1,0 +1,16 @@
+[package]
+name = "portfolio"
+
+[[workspace]]
+name = "portfolio"
+bin-package = "views"
+lib-package = "views"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+style-file = "src/views/style/main.scss"
+site-addr = "127.0.0.1:3000"
+reload-port = 3001
+browserquery = "defaults"
+env = "DEV"
+bin-features = ["ssr"]
+lib-features = ["hydrate"]
