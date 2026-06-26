@@ -1,0 +1,54 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "icon": { "color": "terminal.ansiGreen", "id": "terminal-cmd" },
+            "label": "dev",
+            "type": "shell",
+            "command": "cargo leptos watch",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": { "SQLX_OFFLINE": "true" }
+            },
+            "isBackground": true,
+            "problemMatcher": [],
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        },
+        {
+            "icon": { "color": "terminal.ansiBlue", "id": "database" },
+            "label": "migrate",
+            "type": "shell",
+            "command": "sqlx migrate run --source src/schemas/migrations",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "isBackground": false,
+            "problemMatcher": []
+        },
+        {
+            "icon": { "color": "terminal.ansiYellow", "id": "refresh" },
+            "label": "sqlx prepare",
+            "type": "shell",
+            "command": "cargo sqlx prepare --workspace",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "isBackground": false,
+            "problemMatcher": []
+        },
+        {
+            "icon": { "color": "terminal.ansiCyan", "id": "github" },
+            "label": "git",
+            "type": "shell",
+            "command": "pwsh",
+            "options": {},
+            "isBackground": true,
+            "problemMatcher": [],
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        }
+    ]
+}

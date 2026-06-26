@@ -1,0 +1,53 @@
+{
+    "material-icon-theme.folders.associations": {
+        "views": "layout",
+        "modules": "contract",
+        "repositories": "database",
+        "services": "server",
+        "schemas": "database",
+        "migrations": "database",
+        "pages": "views",
+        "style": "css",
+        "assets": "assets",
+        "uploads": "upload",
+        "dist": "dist"
+    },
+    "breadcrumbs.symbolSortOrder": "name",
+    "files.insertFinalNewline": true,
+    "editor.rulers": [
+        {
+            "column": 100,
+            "color": "#e2860f57"
+        },
+        {
+            "column": 120,
+            "color": "#e2870f9f"
+        }
+    ],
+    "editor.formatOnSave": true,
+    "editor.detectIndentation": false,
+    "editor.insertSpaces": true,
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+        "editor.formatOnSave": true,
+        "editor.tabSize": 4
+    },
+    "[toml]": {
+        "editor.defaultFormatter": "tamasfe.even-better-toml",
+        "editor.tabSize": 4
+    },
+    "[scss]": {
+        "editor.tabSize": 4
+    },
+    "[html]": {
+        "editor.tabSize": 4
+    },
+    "[json]": {
+        "editor.tabSize": 4
+    },
+    "[jsonc]": {
+        "editor.tabSize": 4
+    },
+    "rust-analyzer.cargo.features": "all",
+    "rust-analyzer.check.command": "clippy"
+}
