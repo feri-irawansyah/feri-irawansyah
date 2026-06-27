@@ -8,7 +8,8 @@ pub async fn get_all_positions() -> Result<Vec<PositionView>, ServerFnError> {
     use leptos_actix::extract;
     use modules::positions::PositionRepository;
     use repositories::positions::PositionRepositoryImpl;
-    let pool = extract::<Data<repositories::database::PgPool>>().await
+    let pool = extract::<Data<repositories::database::PgPool>>()
+        .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     PositionRepositoryImpl::new(pool.get_ref().clone())
         .find_all()
@@ -22,7 +23,8 @@ pub async fn get_all_certifications() -> Result<Vec<CertView>, ServerFnError> {
     use leptos_actix::extract;
     use modules::certifications::CertRepository;
     use repositories::certifications::CertRepositoryImpl;
-    let pool = extract::<Data<repositories::database::PgPool>>().await
+    let pool = extract::<Data<repositories::database::PgPool>>()
+        .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     CertRepositoryImpl::new(pool.get_ref().clone())
         .find_all()
@@ -33,53 +35,76 @@ pub async fn get_all_certifications() -> Result<Vec<CertView>, ServerFnError> {
 #[component]
 pub fn ExperiencePage() -> impl IntoView {
     let positions = Resource::new(|| (), |_| get_all_positions());
-    let certs     = Resource::new(|| (), |_| get_all_certifications());
+    let certs = Resource::new(|| (), |_| get_all_certifications());
 
     view! {
-        <div class="page-experience">
-            <div class="container">
-                <header class="page-header">
-                    <h1>"Experience"</h1>
-                    <p>"Work history and certifications."</p>
+        <div class="py-4">
+            <div class="max-w-5xl mx-auto px-6">
+                <header class="py-12 pb-8">
+                    <h1 class="text-[2.25rem] font-extrabold mb-2">"Experience"</h1>
+                    <p class="text-muted text-[1.05rem]">"Work history and certifications."</p>
                 </header>
 
-                <section class="exp-section">
-                    <h2 class="section-title">"Work History"</h2>
-                    <Suspense fallback=|| view! { <div class="loading">"Loading..."</div> }>
+                // ── Work History ────────────────────────────────────────────────
+                <section class="mb-16">
+                    <h2 class="text-2xl font-bold mb-8 text-fg">"Work History"</h2>
+                    <Suspense fallback=|| view! {
+                        <div class="text-center text-muted py-8">"Loading..."</div>
+                    }>
                         {move || positions.get().map(|r| match r {
                             Ok(items) if items.is_empty() => view! {
-                                <p class="empty-state">"No work history added yet."</p>
+                                <p class="text-center text-muted py-12">"No work history added yet."</p>
                             }.into_any(),
                             Ok(items) => view! {
-                                <div class="timeline">
+                                <div class="flex flex-col">
                                     {items.into_iter().map(|p| {
-                                        let period = match p.ended_at {
+                                        let is_current = p.end_date.is_none();
+                                        let period = match p.end_date {
                                             Some(end) => format!(
                                                 "{} – {}",
-                                                p.started_at.format("%b %Y"),
+                                                p.start_date.format("%b %Y"),
                                                 end.format("%b %Y")
                                             ),
-                                            None => format!("{} – Present", p.started_at.format("%b %Y")),
+                                            None => format!("{} – Present", p.start_date.format("%b %Y")),
                                         };
+                                        let desc = p.description.clone();
                                         view! {
-                                            <div class="timeline-item">
-                                                <div class="timeline-dot"></div>
-                                                <div class="timeline-body">
-                                                    <div class="timeline-head">
-                                                        <h3 class="timeline-role">{p.role}</h3>
-                                                        {p.is_current.then(|| view! {
-                                                            <span class="badge badge-green">"Current"</span>
+                                            <div class="relative flex gap-6 pb-8 before:content-[''] before:absolute before:left-[7px] before:top-5 before:bottom-0 before:w-0.5 before:bg-line last:before:hidden">
+                                                <div class="w-4 h-4 rounded-full bg-indigo-500 border-[3px] border-base shrink-0 mt-1 z-10"></div>
+                                                <div class="flex-1">
+                                                    <div class="flex items-center gap-3 mb-1">
+                                                        <h3 class="text-[1.05rem] font-semibold text-fg">{p.title}</h3>
+                                                        {is_current.then(|| view! {
+                                                            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-green-500/15 text-green-500">
+                                                                "Current"
+                                                            </span>
                                                         })}
+                                                        <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-line text-muted">
+                                                            {p.job_position.clone()}
+                                                        </span>
+                                                        <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-line text-muted">
+                                                            {p.job_type.clone()}
+                                                        </span>
                                                     </div>
-                                                    <p class="timeline-company">
-                                                        {p.company}
-                                                        {(!p.location.is_empty()).then(|| view! {
-                                                            <span class="timeline-location">" · " {p.location}</span>
+                                                    <div class="flex items-center gap-2 mb-1">
+                                                        {(!p.image_src.is_empty()).then(|| view! {
+                                                            <img src=p.image_src.clone() alt=p.company.clone()
+                                                                class="w-4 h-4 object-contain rounded-sm"/>
                                                         })}
-                                                    </p>
-                                                    <p class="timeline-period">{period}</p>
-                                                    {(!p.description.is_empty()).then(|| view! {
-                                                        <p class="timeline-desc">{p.description}</p>
+                                                        <p class="text-[0.9rem] text-muted">
+                                                            {p.company.clone()}
+                                                            {(!p.address.is_empty()).then(|| view! {
+                                                                <span class="text-muted">" · " {p.address.clone()}</span>
+                                                            })}
+                                                        </p>
+                                                    </div>
+                                                    <p class="text-xs text-muted mb-2">{period}</p>
+                                                    {(!desc.is_empty()).then(|| view! {
+                                                        <ul class="list-disc list-inside space-y-0.5 mt-1">
+                                                            {desc.into_iter().map(|item| view! {
+                                                                <li class="text-[0.875rem] text-muted">{item}</li>
+                                                            }).collect_view()}
+                                                        </ul>
                                                     })}
                                                 </div>
                                             </div>
@@ -88,35 +113,39 @@ pub fn ExperiencePage() -> impl IntoView {
                                 </div>
                             }.into_any(),
                             Err(e) => view! {
-                                <p class="error-state">{e.to_string()}</p>
+                                <p class="text-red-400 py-4">{e.to_string()}</p>
                             }.into_any(),
                         })}
                     </Suspense>
                 </section>
 
-                <section class="exp-section">
-                    <h2 class="section-title">"Certifications"</h2>
-                    <Suspense fallback=|| view! { <div class="loading">"Loading..."</div> }>
+                // ── Certifications ──────────────────────────────────────────────
+                <section class="mb-16">
+                    <h2 class="text-2xl font-bold mb-8 text-fg">"Certifications"</h2>
+                    <Suspense fallback=|| view! {
+                        <div class="text-center text-muted py-8">"Loading..."</div>
+                    }>
                         {move || certs.get().map(|r| match r {
                             Ok(items) if items.is_empty() => view! {
-                                <p class="empty-state">"No certifications added yet."</p>
+                                <p class="text-center text-muted py-12">"No certifications added yet."</p>
                             }.into_any(),
                             Ok(items) => view! {
-                                <div class="cert-grid">
+                                <div class="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
                                     {items.into_iter().map(|c| view! {
-                                        <div class="cert-card">
+                                        <div class="bg-surface border border-line rounded-xl p-5 flex gap-4 items-start">
                                             {(!c.image_src.is_empty()).then(|| view! {
-                                                <img src=c.image_src.clone() alt=c.title.clone() class="cert-img"/>
+                                                <img src=c.image_src.clone() alt=c.title.clone()
+                                                    class="w-12 h-12 object-contain rounded shrink-0"/>
                                             })}
-                                            <div class="cert-body">
-                                                <h3 class="cert-title">{c.title}</h3>
-                                                <p class="cert-issuer">{c.issuer}</p>
-                                                <p class="cert-date">
-                                                    {c.issued_at.format("%b %Y").to_string()}
-                                                    {c.expired_at.map(|e| format!(" – {}", e.format("%b %Y")))}
+                                            <div class="flex-1 min-w-0">
+                                                <h3 class="text-[0.95rem] font-semibold mb-0.5">{c.title}</h3>
+                                                <p class="text-sm text-muted">{c.description.clone()}</p>
+                                                <p class="text-xs text-muted mt-0.5 mb-3">
+                                                    {c.start_date.format("%b %Y").to_string()}
                                                 </p>
-                                                {(!c.credential_url.is_empty()).then(|| view! {
-                                                    <a href=c.credential_url.clone() target="_blank" class="card-link">
+                                                {(!c.url_docs.is_empty()).then(|| view! {
+                                                    <a href=c.url_docs.clone() target="_blank"
+                                                        class="text-[0.875rem] font-medium text-indigo-500 hover:text-indigo-400">
                                                         "View Certificate →"
                                                     </a>
                                                 })}
@@ -126,7 +155,7 @@ pub fn ExperiencePage() -> impl IntoView {
                                 </div>
                             }.into_any(),
                             Err(e) => view! {
-                                <p class="error-state">{e.to_string()}</p>
+                                <p class="text-red-400 py-4">{e.to_string()}</p>
                             }.into_any(),
                         })}
                     </Suspense>

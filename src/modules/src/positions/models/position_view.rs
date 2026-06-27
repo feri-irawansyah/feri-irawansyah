@@ -1,18 +1,18 @@
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct PositionView {
     pub id: i32,
+    pub title: String,
     pub company: String,
-    pub role: String,
-    pub location: String,
-    pub employment_type: String,
-    pub started_at: NaiveDate,
-    pub ended_at: Option<NaiveDate>,
-    pub is_current: bool,
-    pub description: String,
+    pub url_docs: String,
+    pub image_src: String,
+    pub address: String,
+    pub start_date: NaiveDate,
+    pub end_date: Option<NaiveDate>,
+    pub description: Vec<String>,
+    pub job_position: String,
+    pub job_type: String,
     pub sort_order: i32,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
 }

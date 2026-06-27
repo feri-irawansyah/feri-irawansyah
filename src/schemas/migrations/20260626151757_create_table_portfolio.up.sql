@@ -6,7 +6,9 @@ CREATE TABLE portfolio (
     url_docs     TEXT        NOT NULL DEFAULT '',
     image_src    TEXT        NOT NULL DEFAULT '',
     tech         INT4[]      NOT NULL DEFAULT '{}',
-    featured     BOOLEAN     NOT NULL DEFAULT FALSE,
+    pined        BOOLEAN     NOT NULL DEFAULT FALSE,
     sort_order   INT         NOT NULL DEFAULT 0,
+    details      TEXT        NOT NULL DEFAULT '',
+    tsv          TSVECTOR,
     last_update  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

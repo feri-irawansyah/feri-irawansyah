@@ -34,6 +34,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(pool))
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
             .service(Files::new("/assets", site_root.to_string()))
+            .service(Files::new("/public", "./public"))
             .service(Files::new("/uploads", "./uploads"))
             .leptos_routes(routes.clone(), {
                 let leptos_options = leptos_options.clone();

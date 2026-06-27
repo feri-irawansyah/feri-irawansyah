@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct PortfolioView {
     pub portfolio_id: i32,
     pub title: String,
@@ -10,7 +10,8 @@ pub struct PortfolioView {
     pub url_docs: String,
     pub image_src: String,
     pub tech: Vec<i32>,
-    pub featured: bool,
+    pub pined: bool,
     pub sort_order: i32,
+    pub details: String,
     pub last_update: DateTime<Utc>,
 }

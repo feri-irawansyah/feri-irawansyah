@@ -36,5 +36,13 @@
         "editor.tabSize": 4
     },
     "rust-analyzer.cargo.features": "all",
-    "rust-analyzer.check.command": "clippy"
+    "rust-analyzer.check.command": "clippy",
+
+    "tailwindCSS.experimental.configFile": "src/views/style/tailwind.css",
+    "tailwindCSS.includeLanguages": {
+        "rust": "html"
+    },
+    "editor.quickSuggestions": {
+        "strings": "on"
+    }
 }

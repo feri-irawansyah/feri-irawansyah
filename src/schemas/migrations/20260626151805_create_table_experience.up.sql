@@ -1,7 +1,11 @@
 CREATE TABLE experience (
     id          SERIAL      PRIMARY KEY,
-    position_id INT         NOT NULL REFERENCES positions(id) ON DELETE CASCADE,
-    description TEXT        NOT NULL,
-    sort_order  INT         NOT NULL DEFAULT 0,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    title       TEXT        NOT NULL,
+    company     TEXT        NOT NULL,
+    url_docs    TEXT        NOT NULL DEFAULT '',
+    image_src   TEXT        NOT NULL DEFAULT '',
+    start_date  DATE        NOT NULL,
+    end_date    DATE,
+    last_update TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+

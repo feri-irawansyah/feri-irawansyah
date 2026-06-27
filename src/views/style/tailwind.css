@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@source "../../**/*.rs";
+
+@theme {
+  --color-base:    #0d0d0f;
+  --color-surface: #16181d;
+  --color-line:    #2a2d35;
+  --color-fg:      #e8eaf0;
+  --color-muted:   #8b90a0;
+}
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    @apply bg-base text-fg min-h-screen flex flex-col;
+  }
+
+  a { @apply text-indigo-500 no-underline; }
+
+  img { display: block; max-width: 100%; height: auto; }
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.marquee-inner {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  width: max-content;
+  animation: marquee 40s linear infinite;
+}
+
+.marquee-inner:hover {
+  animation-play-state: paused;
+}
+
+@layer components {
+  .article-content {
+    font-size: 1rem;
+    line-height: 1.8;
+    @apply text-muted;
+  }
+  .article-content p   { margin-bottom: 1.25rem; }
+  .article-content h2  { font-size: 1.4rem; font-weight: 700; @apply text-fg; margin: 2rem 0 0.75rem; }
+  .article-content h3  { font-size: 1.15rem; font-weight: 600; @apply text-fg; margin: 1.5rem 0 0.5rem; }
+  .article-content pre { @apply bg-surface border border-line rounded; padding: 1rem; overflow-x: auto; margin-bottom: 1.25rem; }
+  .article-content code { font-family: "JetBrains Mono", monospace; font-size: 0.875rem; }
+  .article-content a   { @apply text-indigo-500 hover:text-indigo-400; }
+}

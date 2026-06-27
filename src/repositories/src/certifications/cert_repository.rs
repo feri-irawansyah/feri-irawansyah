@@ -16,11 +16,9 @@ impl CertRepositoryImpl {
 #[async_trait]
 impl CertRepository for CertRepositoryImpl {
     async fn find_all(&self) -> Result<Vec<CertView>> {
-        let rows = sqlx::query_as!(
-            CertView,
-            r#"SELECT id, title, issuer, issued_at, expired_at, credential_id,
-                      credential_url, image_src, sort_order, created_at, updated_at
-               FROM certifications ORDER BY sort_order, issued_at DESC"#
+        let rows = sqlx::query_as::<_, CertView>(
+            "SELECT id, title, url_docs, image_src, description, tech, start_date, last_update
+             FROM certifications ORDER BY start_date DESC",
         )
         .fetch_all(&self.pool)
         .await?;
@@ -28,13 +26,11 @@ impl CertRepository for CertRepositoryImpl {
     }
 
     async fn find_by_id(&self, id: i32) -> Result<Option<CertView>> {
-        let row = sqlx::query_as!(
-            CertView,
-            r#"SELECT id, title, issuer, issued_at, expired_at, credential_id,
-                      credential_url, image_src, sort_order, created_at, updated_at
-               FROM certifications WHERE id = $1"#,
-            id
+        let row = sqlx::query_as::<_, CertView>(
+            "SELECT id, title, url_docs, image_src, description, tech, start_date, last_update
+             FROM certifications WHERE id = $1",
         )
+        .bind(id)
         .fetch_optional(&self.pool)
         .await?;
         Ok(row)

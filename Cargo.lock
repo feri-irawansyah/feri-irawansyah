@@ -1904,6 +1904,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "serde",
+ "sqlx",
 ]
 
 [[package]]

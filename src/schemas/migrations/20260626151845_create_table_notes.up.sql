@@ -5,8 +5,9 @@ CREATE TABLE notes (
     slug        TEXT        NOT NULL UNIQUE,
     content     TEXT        NOT NULL,
     description TEXT        NOT NULL,
-    hashtag     TEXT[]      NOT NULL DEFAULT '{}',
-    published   BOOLEAN     NOT NULL DEFAULT FALSE,
-    ip_address  TEXT        NOT NULL DEFAULT '',
+    hashtag     TEXT[],
+    enabled     BOOLEAN     NOT NULL DEFAULT FALSE,
+    ip_address  TEXT,
+    tsv         TSVECTOR,
     last_update TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
