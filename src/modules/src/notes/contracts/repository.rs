@@ -8,4 +8,5 @@ pub trait NoteRepository: Send + Sync {
     async fn find_recent(&self, limit: i64) -> Result<Vec<NoteView>>;
     async fn find_by_slug(&self, slug: &str) -> Result<Option<NoteView>>;
     async fn find_by_category(&self, category: &str) -> Result<Vec<NoteView>>;
+    async fn find_paginated(&self, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)>;
 }

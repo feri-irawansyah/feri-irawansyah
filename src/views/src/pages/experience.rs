@@ -2,33 +2,39 @@ use leptos::prelude::*;
 use modules::certifications::CertView;
 use modules::positions::PositionView;
 
-#[server]
-pub async fn get_all_positions() -> Result<Vec<PositionView>, ServerFnError> {
+#[cfg(feature = "ssr")]
+async fn position_svc(
+) -> Result<std::sync::Arc<dyn modules::positions::PositionService>, ServerFnError> {
     use actix_web::web::Data;
     use leptos_actix::extract;
-    use modules::positions::PositionRepository;
-    use repositories::positions::PositionRepositoryImpl;
-    let pool = extract::<Data<repositories::database::PgPool>>()
+    use std::sync::Arc;
+    let svc = extract::<Data<Arc<dyn modules::positions::PositionService>>>()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    PositionRepositoryImpl::new(pool.get_ref().clone())
-        .find_all()
+    Ok(Arc::clone(&svc))
+}
+
+#[cfg(feature = "ssr")]
+async fn cert_svc() -> Result<std::sync::Arc<dyn modules::certifications::CertService>, ServerFnError>
+{
+    use actix_web::web::Data;
+    use leptos_actix::extract;
+    use std::sync::Arc;
+    let svc = extract::<Data<Arc<dyn modules::certifications::CertService>>>()
         .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    Ok(Arc::clone(&svc))
+}
+
+#[server]
+pub async fn get_all_positions() -> Result<Vec<PositionView>, ServerFnError> {
+    position_svc().await?.list().await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
 
 #[server]
 pub async fn get_all_certifications() -> Result<Vec<CertView>, ServerFnError> {
-    use actix_web::web::Data;
-    use leptos_actix::extract;
-    use modules::certifications::CertRepository;
-    use repositories::certifications::CertRepositoryImpl;
-    let pool = extract::<Data<repositories::database::PgPool>>()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-    CertRepositoryImpl::new(pool.get_ref().clone())
-        .find_all()
-        .await
+    cert_svc().await?.list().await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
 

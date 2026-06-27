@@ -29,6 +29,8 @@
   a { @apply text-indigo-500 no-underline; }
 
   img { display: block; max-width: 100%; height: auto; }
+
+  pre, code { white-space: pre; }
 }
 
 @keyframes marquee {
@@ -54,10 +56,142 @@
     line-height: 1.8;
     @apply text-muted;
   }
-  .article-content p   { margin-bottom: 1.25rem; }
-  .article-content h2  { font-size: 1.4rem; font-weight: 700; @apply text-fg; margin: 2rem 0 0.75rem; }
-  .article-content h3  { font-size: 1.15rem; font-weight: 600; @apply text-fg; margin: 1.5rem 0 0.5rem; }
-  .article-content pre { @apply bg-surface border border-line rounded; padding: 1rem; overflow-x: auto; margin-bottom: 1.25rem; }
-  .article-content code { font-family: "JetBrains Mono", monospace; font-size: 0.875rem; }
-  .article-content a   { @apply text-indigo-500 hover:text-indigo-400; }
+
+  /* Headings */
+  .article-content h1 { font-size: 1.75rem; font-weight: 800; @apply text-fg; margin: 2.5rem 0 1rem; }
+  .article-content h2 { font-size: 1.4rem;  font-weight: 700; @apply text-fg; margin: 2rem 0 0.75rem; padding-bottom: 0.4rem; @apply border-b border-line; }
+  .article-content h3 { font-size: 1.15rem; font-weight: 600; @apply text-fg; margin: 1.5rem 0 0.5rem; }
+  .article-content h4 { font-size: 1rem;    font-weight: 600; @apply text-fg; margin: 1.25rem 0 0.4rem; }
+
+  /* Paragraph & inline */
+  .article-content p      { margin-bottom: 1.25rem; }
+  .article-content strong { @apply text-fg; font-weight: 600; }
+  .article-content em     { font-style: italic; }
+  .article-content a      { @apply text-violet-400 hover:text-violet-300; text-decoration: underline; text-underline-offset: 3px; }
+
+  /* Code */
+  .article-content pre  { @apply bg-surface border border-line rounded-lg; padding: 1.1rem 1.25rem; overflow-x: auto; margin-bottom: 1.25rem; }
+  .article-content code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.875rem; }
+  .article-content :not(pre) > code { @apply bg-surface border border-line text-violet-300; padding: 0.15em 0.45em; border-radius: 0.3rem; font-size: 0.85em; }
+
+  /* Code wrapper + header bar */
+  .article-content .code-wrapper {
+    border: 1px solid #2a2d35;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+  }
+  .article-content .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.45rem 1rem;
+    background: #2a2d35;
+  }
+  .article-content .code-lang {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.75rem;
+    color: #8b90a0;
+    text-transform: lowercase;
+  }
+  .article-content .copy-btn {
+    font-size: 0.72rem;
+    color: #8b90a0;
+    background: transparent;
+    border: 1px solid #3a3d45;
+    border-radius: 0.25rem;
+    padding: 0.15rem 0.6rem;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .article-content .copy-btn:hover { color: #e8eaf0; border-color: #6d70ff; }
+
+  /* Syntax highlighted code block (VS Code Dark+) */
+  .article-content .code-block {
+    background: #1e1e1e;
+    border: none;
+    border-radius: 0;
+    padding: 1.1rem 1.25rem;
+    overflow-x: auto;
+    margin-bottom: 0;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.875rem;
+    line-height: 1.65;
+    color: #d4d4d4;
+    white-space: pre;
+    tab-size: 4;
+  }
+  .article-content .code-block code { font-size: inherit; white-space: pre; }
+  /* Token colors pakai inline style dari syntect (base16-ocean.dark theme) */
+
+  /* Lists */
+  .article-content ul { list-style: disc;    padding-left: 1.5rem; margin-bottom: 1.25rem; }
+  .article-content ol { list-style: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; }
+  .article-content li { margin-bottom: 0.35rem; }
+  .article-content li > ul,
+  .article-content li > ol { margin-top: 0.35rem; margin-bottom: 0; }
+
+  /* Blockquote */
+  .article-content blockquote {
+    @apply border-l-4 border-violet-500 bg-surface;
+    padding: 0.75rem 1.25rem;
+    margin: 1.5rem 0;
+    border-radius: 0 0.5rem 0.5rem 0;
+    font-style: italic;
+  }
+  .article-content blockquote p { margin-bottom: 0; }
+
+  /* HR */
+  .article-content hr { @apply border-line; margin: 2rem 0; }
+
+  /* Images */
+  .article-content img { border-radius: 0.5rem; margin: 1.5rem auto; @apply border border-line; max-width: 100%; }
+
+  /* Table */
+  .article-content table  { width: 100%; border-collapse: collapse; margin-bottom: 1.25rem; font-size: 0.9rem; }
+  .article-content th     { @apply bg-surface text-fg border border-line; padding: 0.6rem 1rem; text-align: left; font-weight: 600; }
+  .article-content td     { @apply border border-line; padding: 0.6rem 1rem; }
+  .article-content tr:nth-child(even) td { @apply bg-surface/50; }
+
+  /* Details / Summary */
+  .article-content details {
+    @apply border border-line bg-surface rounded-lg;
+    padding: 0;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+  .article-content summary {
+    @apply text-fg font-semibold cursor-pointer;
+    padding: 0.85rem 1.25rem;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    user-select: none;
+  }
+  .article-content summary::-webkit-details-marker { display: none; }
+  .article-content summary::before {
+    content: "▶";
+    font-size: 0.65rem;
+    @apply text-violet-400;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+  .article-content details[open] > summary::before { transform: rotate(90deg); }
+  .article-content details[open] > summary {
+    @apply border-b border-line;
+  }
+  .article-content details > *:not(summary) {
+    padding: 1rem 1.25rem;
+  }
+  .article-content summary h1,
+  .article-content summary h2,
+  .article-content summary h3,
+  .article-content summary h4 {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-size: 1rem;
+    display: inline;
+  }
 }

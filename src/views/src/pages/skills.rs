@@ -1,18 +1,20 @@
 use leptos::prelude::*;
 use modules::skills::SkillView;
 
-#[server]
-pub async fn get_all_skills() -> Result<Vec<SkillView>, ServerFnError> {
+#[cfg(feature = "ssr")]
+async fn skill_svc() -> Result<std::sync::Arc<dyn modules::skills::SkillService>, ServerFnError> {
     use actix_web::web::Data;
     use leptos_actix::extract;
-    use modules::skills::SkillRepository;
-    use repositories::skills::SkillRepositoryImpl;
-    let pool = extract::<Data<repositories::database::PgPool>>()
+    use std::sync::Arc;
+    let svc = extract::<Data<Arc<dyn modules::skills::SkillService>>>()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    SkillRepositoryImpl::new(pool.get_ref().clone())
-        .find_all()
-        .await
+    Ok(Arc::clone(&svc))
+}
+
+#[server]
+pub async fn get_all_skills() -> Result<Vec<SkillView>, ServerFnError> {
+    skill_svc().await?.list().await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
 

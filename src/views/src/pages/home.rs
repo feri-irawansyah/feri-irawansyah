@@ -2,32 +2,42 @@ use leptos::prelude::*;
 use modules::notes::NoteView;
 use modules::skills::SkillView;
 
-#[server]
-pub async fn get_recent_notes() -> Result<Vec<NoteView>, ServerFnError> {
+#[cfg(feature = "ssr")]
+async fn note_svc() -> Result<std::sync::Arc<dyn modules::notes::NoteService>, ServerFnError> {
     use actix_web::web::Data;
     use leptos_actix::extract;
-    use modules::notes::NoteRepository;
-    use repositories::notes::NoteRepositoryImpl;
-    let pool = extract::<Data<repositories::database::PgPool>>()
+    use std::sync::Arc;
+    let svc = extract::<Data<Arc<dyn modules::notes::NoteService>>>()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    NoteRepositoryImpl::new(pool.get_ref().clone())
-        .find_recent(6)
+    Ok(Arc::clone(&svc))
+}
+
+#[cfg(feature = "ssr")]
+async fn skill_svc() -> Result<std::sync::Arc<dyn modules::skills::SkillService>, ServerFnError> {
+    use actix_web::web::Data;
+    use leptos_actix::extract;
+    use std::sync::Arc;
+    let svc = extract::<Data<Arc<dyn modules::skills::SkillService>>>()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    Ok(Arc::clone(&svc))
+}
+
+#[server]
+pub async fn get_recent_notes() -> Result<Vec<NoteView>, ServerFnError> {
+    note_svc()
+        .await?
+        .recent(6)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
 
 #[server]
 pub async fn get_skills() -> Result<Vec<SkillView>, ServerFnError> {
-    use actix_web::web::Data;
-    use leptos_actix::extract;
-    use modules::skills::SkillRepository;
-    use repositories::skills::SkillRepositoryImpl;
-    let pool = extract::<Data<repositories::database::PgPool>>()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-    SkillRepositoryImpl::new(pool.get_ref().clone())
-        .find_all()
+    skill_svc()
+        .await?
+        .list()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -132,15 +142,17 @@ pub fn HomePage() -> impl IntoView {
                                                 <div class="relative group/skill shrink-0">
                                                     {if !s.image_src.is_empty() {
                                                         view! {
-                                                            <img
-                                                                src=s.image_src.clone()
-                                                                alt=s.title.clone()
-                                                                class="w-10 h-10 object-contain opacity-50 group-hover/skill:opacity-100 transition-opacity"
-                                                            />
+                                                            <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center p-1.5 opacity-50 group-hover/skill:opacity-100 transition-opacity">
+                                                                <img
+                                                                    src=s.image_src.clone()
+                                                                    alt=s.title.clone()
+                                                                    class="w-full h-full object-contain"
+                                                                />
+                                                            </div>
                                                         }.into_any()
                                                     } else {
                                                         view! {
-                                                            <div class="w-10 h-10 rounded-full bg-line flex items-center justify-center text-muted text-xs font-bold opacity-50 group-hover/skill:opacity-100 transition-opacity">
+                                                            <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center text-muted text-xs font-bold opacity-50 group-hover/skill:opacity-100 transition-opacity">
                                                                 {s.title.chars().next().unwrap_or('?').to_string()}
                                                             </div>
                                                         }.into_any()
@@ -196,6 +208,7 @@ pub fn HomePage() -> impl IntoView {
                                                     on:error=move |_e: leptos::ev::ErrorEvent| {
                                                         #[cfg(target_arch = "wasm32")]
                                                         {
+                                                            use leptos::web_sys;
                                                             use wasm_bindgen::JsCast;
                                                             if let Some(img) = _e.target()
                                                                 .and_then(|t| t.dyn_into::<web_sys::HtmlImageElement>().ok())

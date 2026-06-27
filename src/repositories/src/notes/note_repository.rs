@@ -73,4 +73,26 @@ impl NoteRepository for NoteRepositoryImpl {
         .await?;
         Ok(rows)
     }
+
+    async fn find_paginated(&self, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)> {
+        let total: i64 = sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*) FROM notes WHERE enabled = TRUE",
+        )
+        .fetch_one(&self.pool)
+        .await?;
+        let offset = (page - 1).max(0) * per_page;
+        let rows = sqlx::query_as::<_, NoteView>(
+            "SELECT notes_id, category, title, slug, content, description,
+                    COALESCE(hashtag, '{}') as hashtag,
+                    enabled,
+                    COALESCE(ip_address, '') as ip_address,
+                    last_update
+             FROM notes WHERE enabled = TRUE ORDER BY last_update DESC LIMIT $1 OFFSET $2",
+        )
+        .bind(per_page)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok((rows, total))
+    }
 }

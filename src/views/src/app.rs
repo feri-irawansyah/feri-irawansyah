@@ -21,6 +21,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
             <head>
                 <meta charset="utf-8"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <link rel="icon" href="/public/favicon.ico" type="image/x-icon"/>
                 <link rel="stylesheet" href="/public/bi/bootstrap-icons.min.css"/>
                 <AutoReload options=options.clone()/>
                 <HydrationScripts options/>
@@ -44,54 +45,51 @@ pub fn App() -> impl IntoView {
 
         <Router>
             // ── Overlay Sidebar ──────────────────────────────────────────────
-            <aside class="fixed left-4 top-1/2 -translate-y-1/2 h-[80vh] flex flex-col items-start gap-2 z-50">
+            <aside class="fixed left-4 top-1/2 -translate-y-1/2 h-[80vh] flex flex-col items-start justify-center gap-3 z-50 ">
 
-                // Logo — always violet pill
-                <A href="/" attr:class="group/item inline-flex items-center h-12 rounded-full bg-violet-600 hover:bg-violet-500 transition-colors duration-200 px-3.5 hover:pr-5 no-underline mb-4">
-                    <i class="bi bi-code-slash text-white text-[1.25rem] shrink-0"></i>
-                    <span class="text-sm font-bold text-white whitespace-nowrap max-w-0 group-hover/item:max-w-[130px] overflow-hidden transition-all duration-200 group-hover/item:ml-2">
-                        "Feri"
-                    </span>
-                </A>
+                // Logo
+                // <A href="/" attr:class="group/item inline-flex items-center h-12 rounded-full bg-line hover:bg-violet-600 transition-colors duration-200 px-3.5 hover:pr-5 no-underline mb-4">
+                //     <img src="/public/favicon.webp" alt="logo" class="w-6 h-6 object-cover rounded-sm shrink-0"/>
+                //     <span class="text-sm font-bold text-white whitespace-nowrap max-w-0 group-hover/item:max-w-[130px] overflow-hidden transition-all duration-200 group-hover/item:ml-2">
+                //         "Feri"
+                //     </span>
+                // </A>
 
                 // Nav items
-                <A href="/" attr:class="group/item inline-flex items-center h-12 rounded-full bg-line hover:bg-violet-600 [&.active]:bg-violet-600 transition-colors duration-200 px-3.5 hover:pr-5 [&.active]:pr-5 no-underline">
+                <A href="/" attr:class="group/item inline-flex items-center h-12 rounded-full bg-line hover:bg-violet-600 [&.active]:bg-violet-500 transition-colors duration-200 px-3.5 hover:pr-5 [&.active]:pr-5 no-underline">
                     <i class="bi bi-house-fill text-muted group-hover/item:text-white text-[1.25rem] transition-colors duration-200 shrink-0"></i>
                     <span class="text-sm font-medium text-white whitespace-nowrap max-w-0 group-hover/item:max-w-[130px] overflow-hidden transition-all duration-200 group-hover/item:ml-2">
                         "Home"
                     </span>
                 </A>
 
-                <A href="/portfolio" attr:class="group/item inline-flex items-center h-12 rounded-full bg-line hover:bg-violet-600 [&.active]:bg-violet-600 transition-colors duration-200 px-3.5 hover:pr-5 [&.active]:pr-5 no-underline">
+                <A href="/portfolio" attr:class="group/item inline-flex items-center h-12 rounded-full bg-line hover:bg-violet-600 [&.active]:bg-violet-500 transition-colors duration-200 px-3.5 hover:pr-5 [&.active]:pr-5 no-underline">
                     <i class="bi bi-grid-fill text-muted group-hover/item:text-white text-[1.25rem] transition-colors duration-200 shrink-0"></i>
                     <span class="text-sm font-medium text-white whitespace-nowrap max-w-0 group-hover/item:max-w-[130px] overflow-hidden transition-all duration-200 group-hover/item:ml-2">
                         "Portfolio"
                     </span>
                 </A>
 
-                <A href="/experience" attr:class="group/item inline-flex items-center h-12 rounded-full bg-line hover:bg-violet-600 [&.active]:bg-violet-600 transition-colors duration-200 px-3.5 hover:pr-5 [&.active]:pr-5 no-underline">
+                <A href="/experience" attr:class="group/item inline-flex items-center h-12 rounded-full bg-line hover:bg-violet-600 [&.active]:bg-violet-500 transition-colors duration-200 px-3.5 hover:pr-5 [&.active]:pr-5 no-underline">
                     <i class="bi bi-person-workspace text-muted group-hover/item:text-white text-[1.25rem] transition-colors duration-200 shrink-0"></i>
                     <span class="text-sm font-medium text-white whitespace-nowrap max-w-0 group-hover/item:max-w-[130px] overflow-hidden transition-all duration-200 group-hover/item:ml-2">
                         "Experience"
                     </span>
                 </A>
 
-                <A href="/notes" attr:class="group/item inline-flex items-center h-12 rounded-full bg-line hover:bg-violet-600 [&.active]:bg-violet-600 transition-colors duration-200 px-3.5 hover:pr-5 [&.active]:pr-5 no-underline">
+                <A href="/notes" attr:class="group/item inline-flex items-center h-12 rounded-full bg-line hover:bg-violet-600 [&.active]:bg-violet-500 transition-colors duration-200 px-3.5 hover:pr-5 [&.active]:pr-5 no-underline">
                     <i class="bi bi-journal-text text-muted group-hover/item:text-white text-[1.25rem] transition-colors duration-200 shrink-0"></i>
                     <span class="text-sm font-medium text-white whitespace-nowrap max-w-0 group-hover/item:max-w-[130px] overflow-hidden transition-all duration-200 group-hover/item:ml-2">
                         "Notes"
                     </span>
                 </A>
 
-                <A href="/skills" attr:class="group/item inline-flex items-center h-12 rounded-full bg-line hover:bg-violet-600 [&.active]:bg-violet-600 transition-colors duration-200 px-3.5 hover:pr-5 [&.active]:pr-5 no-underline">
+                <A href="/skills" attr:class="group/item inline-flex items-center h-12 rounded-full bg-line hover:bg-violet-600 [&.active]:bg-violet-500 transition-colors duration-200 px-3.5 hover:pr-5 [&.active]:pr-5 no-underline">
                     <i class="bi bi-cpu text-muted group-hover/item:text-white text-[1.25rem] transition-colors duration-200 shrink-0"></i>
                     <span class="text-sm font-medium text-white whitespace-nowrap max-w-0 group-hover/item:max-w-[130px] overflow-hidden transition-all duration-200 group-hover/item:ml-2">
                         "Skills"
                     </span>
                 </A>
-
-                // Social links — pushed to bottom
-                <div class="flex-1"></div>
 
                 <a href="https://github.com/feri-irawansyah" target="_blank"
                     class="group/item inline-flex items-center h-12 rounded-full bg-line hover:bg-violet-600 transition-colors duration-200 px-3.5 hover:pr-5 no-underline">

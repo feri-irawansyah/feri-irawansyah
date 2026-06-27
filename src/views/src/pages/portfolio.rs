@@ -1,18 +1,21 @@
 use leptos::prelude::*;
 use modules::portfolio::PortfolioView;
 
-#[server]
-pub async fn get_all_portfolio() -> Result<Vec<PortfolioView>, ServerFnError> {
+#[cfg(feature = "ssr")]
+async fn portfolio_svc(
+) -> Result<std::sync::Arc<dyn modules::portfolio::PortfolioService>, ServerFnError> {
     use actix_web::web::Data;
     use leptos_actix::extract;
-    use modules::portfolio::PortfolioRepository;
-    use repositories::portfolio::PortfolioRepositoryImpl;
-    let pool = extract::<Data<repositories::database::PgPool>>()
+    use std::sync::Arc;
+    let svc = extract::<Data<Arc<dyn modules::portfolio::PortfolioService>>>()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    PortfolioRepositoryImpl::new(pool.get_ref().clone())
-        .find_all()
-        .await
+    Ok(Arc::clone(&svc))
+}
+
+#[server]
+pub async fn get_all_portfolio() -> Result<Vec<PortfolioView>, ServerFnError> {
+    portfolio_svc().await?.list().await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
 
