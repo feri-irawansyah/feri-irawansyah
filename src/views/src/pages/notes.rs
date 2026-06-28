@@ -97,7 +97,7 @@ pub fn NotesPage() -> impl IntoView {
                                 <button
                                     disabled={move || current_page.get() <= 1}
                                     on:click=on_prev
-                                    class="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-muted border border-line rounded hover:border-violet-500 hover:text-fg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                    class="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-muted border border-line rounded hover:border-teal-500 hover:text-fg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
                                     <i class="bi bi-arrow-left text-[0.85rem]"></i>
                                     "Previous"
@@ -108,7 +108,7 @@ pub fn NotesPage() -> impl IntoView {
                                 <button
                                     disabled={move || current_page.get() >= total_pages.get()}
                                     on:click=on_next
-                                    class="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-muted border border-line rounded hover:border-violet-500 hover:text-fg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                    class="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-muted border border-line rounded hover:border-teal-500 hover:text-fg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
                                     "Next"
                                     <i class="bi bi-arrow-right text-[0.85rem]"></i>
@@ -162,14 +162,14 @@ fn NoteCard(note: NoteView) -> impl IntoView {
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex gap-3 items-center mb-1.5">
-                        <span class="text-xs font-semibold text-violet-400 uppercase tracking-[0.06em]">
+                        <span class="text-xs font-semibold text-teal-400 uppercase tracking-[0.06em]">
                             {note.category.clone()}
                         </span>
                         <span class="text-xs text-muted">
                             {note.last_update.format("%d %b %Y").to_string()}
                         </span>
                     </div>
-                    <h2 class="text-[1.05rem] font-bold mb-1.5 text-fg group-hover:text-violet-400 transition-colors leading-snug">
+                    <h2 class="text-[1.05rem] font-bold mb-1.5 text-fg group-hover:text-teal-400 transition-colors leading-snug">
                         {note.title.clone()}
                     </h2>
                     <p class="text-[0.875rem] text-muted mb-2.5 line-clamp-2 leading-relaxed">
@@ -251,7 +251,7 @@ pub fn NotePage() -> impl IntoView {
                                 <h1 class="text-[6rem] font-extrabold text-line leading-none">"404"</h1>
                                 <p class="text-muted my-4 mb-8">"Note not found."</p>
                                 <a href="/notes"
-                                    class="inline-flex items-center gap-1.5 px-[1.4rem] py-[0.6rem] border border-line text-muted hover:border-indigo-500 hover:text-fg rounded text-[0.9rem] font-medium transition-colors">
+                                    class="inline-flex items-center gap-1.5 px-[1.4rem] py-[0.6rem] border border-line text-muted hover:border-teal-500 hover:text-fg rounded text-[0.9rem] font-medium transition-colors">
                                     "← Back to Notes"
                                 </a>
                             </div>
@@ -301,7 +301,7 @@ fn NoteDetail(
                     <div class="absolute inset-0 bg-linear-to-t from-base via-base/70 to-transparent"></div>
                     <div class="absolute bottom-0 left-0 right-0 px-8 pb-8">
                         <div class="flex gap-4 items-center mb-3">
-                            <span class="text-xs font-semibold text-violet-400 uppercase tracking-[0.06em]">
+                            <span class="text-xs font-semibold text-teal-400 uppercase tracking-[0.06em]">
                                 {note.category.clone()}
                             </span>
                             <span class="text-xs text-muted">
@@ -345,7 +345,7 @@ fn NoteToc(
     view! {
         <aside class="hidden xl:flex xl:flex-col w-56 shrink-0 sticky top-4 py-8 max-h-[calc(100vh-2rem)]">
             <a href="/notes"
-                class="inline-flex items-center gap-1.5 text-[0.8rem] text-muted hover:text-violet-400 transition-colors no-underline mb-5">
+                class="inline-flex items-center gap-1.5 text-[0.8rem] text-muted hover:text-teal-400 transition-colors no-underline mb-5">
                 <i class="bi bi-arrow-left text-[0.75rem]"></i>
                 "Back to Notes"
             </a>
@@ -357,7 +357,7 @@ fn NoteToc(
                 <input
                     type="text"
                     placeholder="Search headings..."
-                    class="w-full text-[0.75rem] bg-surface border border-line rounded pl-7 pr-2.5 py-1.5 text-fg placeholder:text-muted focus:outline-none focus:border-violet-500 transition-colors"
+                    class="w-full text-[0.75rem] bg-surface border border-line rounded pl-7 pr-2.5 py-1.5 text-fg placeholder:text-muted focus:outline-none focus:border-teal-500 transition-colors"
                     prop:value=toc_search
                     on:input=move |e| toc_search.set(event_target_value(&e))
                 />
@@ -377,7 +377,7 @@ fn NoteToc(
                                 view! {
                                     <li style=indent>
                                         <a href=format!("#{}", h.id)
-                                            class="block text-[0.8rem] text-muted hover:text-violet-400 transition-colors py-0.5 leading-snug no-underline">
+                                            class="block text-[0.8rem] text-muted hover:text-teal-400 transition-colors py-0.5 leading-snug no-underline">
                                             {h.text}
                                         </a>
                                     </li>

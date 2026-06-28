@@ -4,5 +4,5 @@
 /uploads
 /.env.local
 /old
-/.env
+.env
 CLAUDE.md

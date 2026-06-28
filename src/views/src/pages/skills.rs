@@ -46,7 +46,7 @@ pub fn SkillsPage() -> impl IntoView {
                                     let circ = 188.5_f32;
                                     let filled = circ * pct as f32 / 100.0;
                                     view! {
-                                        <div class="bg-surface border border-line rounded-xl p-5 flex flex-col items-center gap-3 hover:border-violet-500 transition-colors">
+                                        <div class="bg-surface border border-line rounded-xl p-5 flex flex-col items-center gap-3 hover:border-teal-500 transition-colors">
                                             // Circular progress SVG
                                             <div class="relative w-20 h-20">
                                                 <svg class="w-full h-full -rotate-90" viewBox="0 0 80 80">
@@ -65,7 +65,7 @@ pub fn SkillsPage() -> impl IntoView {
                                                     })}
                                                 </div>
                                             </div>
-                                            <p class="text-lg font-extrabold text-violet-500">
+                                            <p class="text-lg font-extrabold text-teal-500">
                                                 {format!("{}%", pct)}
                                             </p>
                                             <p class="text-[0.85rem] text-muted font-medium text-center">{s.title}</p>

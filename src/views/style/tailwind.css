@@ -10,6 +10,14 @@
   --color-muted:   #8b90a0;
 }
 
+html.light {
+  --color-base:    #f8f9fc;
+  --color-surface: #ffffff;
+  --color-line:    #e2e4ea;
+  --color-fg:      #0d0d0f;
+  --color-muted:   #5a5f72;
+}
+
 @layer base {
   *, *::before, *::after {
     box-sizing: border-box;
@@ -19,6 +27,13 @@
 
   html { scroll-behavior: smooth; }
 
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-teal-600); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-teal-400); }
+  * { scrollbar-width: thin; scrollbar-color: var(--color-teal-600) transparent; }
+
   body {
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     font-size: 16px;
@@ -26,7 +41,7 @@
     @apply bg-base text-fg min-h-screen flex flex-col;
   }
 
-  a { @apply text-indigo-500 no-underline; }
+  a { @apply text-teal-500 no-underline; }
 
   img { display: block; max-width: 100%; height: auto; }
 
@@ -37,6 +52,30 @@
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
+
+@keyframes notes-up-a   { from { opacity:0; transform:translateY(32px) } to { opacity:1; transform:translateY(0) } }
+@keyframes notes-up-b   { from { opacity:0; transform:translateY(32px) } to { opacity:1; transform:translateY(0) } }
+@keyframes notes-down-a { from { opacity:0; transform:translateY(-32px) } to { opacity:1; transform:translateY(0) } }
+@keyframes notes-down-b { from { opacity:0; transform:translateY(-32px) } to { opacity:1; transform:translateY(0) } }
+
+.notes-anim-up-a   { animation: notes-up-a   0.45s cubic-bezier(0.16,1,0.3,1) both; }
+.notes-anim-up-b   { animation: notes-up-b   0.45s cubic-bezier(0.16,1,0.3,1) both; }
+.notes-anim-down-a { animation: notes-down-a 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+.notes-anim-down-b { animation: notes-down-b 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+
+@keyframes puddle-morph {
+  0%, 100% { border-radius: 72% 28% 65% 35% / 32% 58% 42% 68%; }
+  20%      { border-radius: 45% 55% 30% 70% / 62% 28% 72% 38%; }
+  40%      { border-radius: 68% 32% 75% 25% / 45% 68% 32% 55%; }
+  60%      { border-radius: 30% 70% 48% 52% / 70% 35% 65% 30%; }
+  80%      { border-radius: 58% 42% 28% 72% / 38% 72% 28% 62%; }
+}
+
+.puddle-frame {
+  border-radius: 72% 28% 65% 35% / 32% 58% 42% 68%;
+  animation: puddle-morph 8s ease-in-out infinite;
+}
+
 
 .marquee-inner {
   display: flex;
@@ -67,12 +106,12 @@
   .article-content p      { margin-bottom: 1.25rem; }
   .article-content strong { @apply text-fg; font-weight: 600; }
   .article-content em     { font-style: italic; }
-  .article-content a      { @apply text-violet-400 hover:text-violet-300; text-decoration: underline; text-underline-offset: 3px; }
+  .article-content a      { @apply text-teal-400 hover:text-teal-300; text-decoration: underline; text-underline-offset: 3px; }
 
   /* Code */
   .article-content pre  { @apply bg-surface border border-line rounded-lg; padding: 1.1rem 1.25rem; overflow-x: auto; margin-bottom: 1.25rem; }
   .article-content code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.875rem; }
-  .article-content :not(pre) > code { @apply bg-surface border border-line text-violet-300; padding: 0.15em 0.45em; border-radius: 0.3rem; font-size: 0.85em; }
+  .article-content :not(pre) > code { @apply bg-surface border border-line text-teal-300; padding: 0.15em 0.45em; border-radius: 0.3rem; font-size: 0.85em; }
 
   /* Code wrapper + header bar */
   .article-content .code-wrapper {
@@ -133,7 +172,7 @@
 
   /* Blockquote */
   .article-content blockquote {
-    @apply border-l-4 border-violet-500 bg-surface;
+    @apply border-l-4 border-teal-500 bg-surface;
     padding: 0.75rem 1.25rem;
     margin: 1.5rem 0;
     border-radius: 0 0.5rem 0.5rem 0;
@@ -173,7 +212,7 @@
   .article-content summary::before {
     content: "▶";
     font-size: 0.65rem;
-    @apply text-violet-400;
+    @apply text-teal-400;
     transition: transform 0.2s ease;
     flex-shrink: 0;
   }
