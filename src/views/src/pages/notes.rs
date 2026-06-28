@@ -61,7 +61,9 @@ pub fn NotesPage() -> impl IntoView {
         if p > 1 {
             current_page.set(p - 1);
             #[cfg(target_arch = "wasm32")]
-            { let _ = leptos::web_sys::window().map(|w| w.scroll_to_with_x_and_y(0.0, 0.0)); }
+            {
+                let _ = leptos::web_sys::window().map(|w| w.scroll_to_with_x_and_y(0.0, 0.0));
+            }
         }
     };
     let on_next = move |_: leptos::ev::MouseEvent| {
@@ -69,7 +71,9 @@ pub fn NotesPage() -> impl IntoView {
         if p < total_pages.get() {
             current_page.set(p + 1);
             #[cfg(target_arch = "wasm32")]
-            { let _ = leptos::web_sys::window().map(|w| w.scroll_to_with_x_and_y(0.0, 0.0)); }
+            {
+                let _ = leptos::web_sys::window().map(|w| w.scroll_to_with_x_and_y(0.0, 0.0));
+            }
         }
     };
 
@@ -301,18 +305,18 @@ fn NoteDetail(
                     <div class="absolute inset-0 bg-linear-to-t from-base via-base/70 to-transparent"></div>
                     <div class="absolute bottom-0 left-0 right-0 px-8 pb-8">
                         <div class="flex gap-4 items-center mb-3">
-                            <span class="text-xs font-semibold text-teal-400 uppercase tracking-[0.06em]">
+                            <span class="text-xs font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-[0.06em]">
                                 {note.category.clone()}
                             </span>
                             <span class="text-xs text-muted">
                                 {note.last_update.format("%d %B %Y").to_string()}
                             </span>
                         </div>
-                        <h1 class="text-3xl font-extrabold mb-2 leading-tight text-white">{note.title}</h1>
-                        <p class="text-white/70 text-[1.05rem] mb-4">{note.description}</p>
+                        <h1 class="text-3xl font-extrabold mb-2 leading-tight text-gray-600 dark:text-white">{note.title}</h1>
+                        <p class="text-gray-500 dark:text-white/70 text-[1.05rem] mb-4">{note.description}</p>
                         <div class="flex flex-wrap gap-1.5">
                             {note.hashtag.into_iter().map(|tag| view! {
-                                <span class="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-white/70 backdrop-blur-sm">
+                                <span class="text-xs px-2.5 py-0.5 rounded-full bg-white/80 dark:bg-white/10 text-gray-600 dark:text-white/70 backdrop-blur-sm">
                                     "#" {tag}
                                 </span>
                             }).collect_view()}

@@ -157,7 +157,7 @@ pub fn HomePage() -> impl IntoView {
                                                 <div class="relative group/skill shrink-0">
                                                     {if !s.image_src.is_empty() {
                                                         view! {
-                                                            <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center p-1.5 opacity-50 group-hover/skill:opacity-100 transition-opacity">
+                                                            <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center p-1.5 dark:opacity-70 group-hover/skill:opacity-100 transition-opacity">
                                                                 <img
                                                                     src=s.image_src.clone()
                                                                     alt=s.title.clone()
@@ -287,7 +287,8 @@ pub fn HomePage() -> impl IntoView {
                                                                     }
                                                                 }
                                                             />
-                                                            <div class="absolute inset-0 bg-base/70 group-hover:bg-base/10 transition-colors duration-500"></div>
+                                                            <div class="absolute inset-0 bg-white/10 dark:bg-black/55 group-hover:bg-black/10 transition-colors duration-500"></div>
+                                                            <div class="absolute inset-0 bg-linear-to-t from-gray-900/80 to-transparent pointer-events-none"></div>
                                                             {match idx % 6 {
                                                                 0 => view! { <div class="absolute inset-0 bg-linear-to-br from-teal-600 to-teal-400 opacity-0 group-hover:opacity-80 transition-opacity duration-500"></div> }.into_any(),
                                                                 1 => view! { <div class="absolute inset-0 bg-linear-to-br from-amber-500 to-amber-300 opacity-0 group-hover:opacity-80 transition-opacity duration-500"></div> }.into_any(),
@@ -298,18 +299,18 @@ pub fn HomePage() -> impl IntoView {
                                                             }}
                                                             <div class="relative z-10 mt-auto p-5 flex flex-col gap-1.5">
                                                                 <div class="flex items-center gap-2">
-                                                                    <span class="text-xs font-semibold text-teal-400 group-hover:text-white/90 uppercase tracking-wide transition-colors duration-300">
+                                                                    <span class="text-xs font-semibold text-teal-300 group-hover:text-white/90 uppercase tracking-wide transition-colors duration-300">
                                                                         {n.category.clone()}
                                                                     </span>
-                                                                    <span class="text-xs text-muted group-hover:text-white/60 transition-colors duration-300">
+                                                                    <span class="text-xs text-white/60  group-hover:text-white/60 transition-colors duration-300">
                                                                         {n.last_update.format("%d %b %Y").to_string()}
                                                                     </span>
                                                                 </div>
-                                                                <h3 class="text-[0.95rem] font-bold text-fg group-hover:text-white transition-colors duration-300 leading-snug">
+                                                                <h3 class="text-[0.95rem] font-bold text-white group-hover:text-white transition-colors duration-300 leading-snug">
                                                                     {n.title.clone()}
                                                                 </h3>
                                                                 {(!n.description.is_empty()).then(|| view! {
-                                                                    <p class="text-[0.82rem] text-muted group-hover:text-white/75 transition-colors duration-300 leading-relaxed line-clamp-2">
+                                                                    <p class="text-[0.82rem] text-white/70 group-hover:text-white/75 transition-colors duration-300 leading-relaxed line-clamp-2">
                                                                         {n.description.clone()}
                                                                     </p>
                                                                 })}

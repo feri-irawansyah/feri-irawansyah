@@ -23,7 +23,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
                 <link rel="icon" href="/public/favicon.ico" type="image/x-icon"/>
                 <link rel="stylesheet" href="/public/bi/bootstrap-icons.min.css"/>
-                <script inner_html="(function(){var t=localStorage.getItem('theme');if(t==='light')document.documentElement.classList.add('light')})()"></script>
+                <script inner_html="(function(){document.documentElement.classList.toggle('dark',localStorage.theme==='dark'||(!('theme' in localStorage)&&window.matchMedia('(prefers-color-scheme: dark)').matches))})()"></script>
                 <AutoReload options=options.clone()/>
                 <HydrationScripts options/>
                 <MetaTags/>
@@ -39,25 +39,32 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
 pub fn App() -> impl IntoView {
     provide_meta_context();
 
-    let (is_dark, set_is_dark) = signal(true);
+    let (is_dark, set_is_dark) = signal(false);
 
-    // Initialize from localStorage on mount
+    // Initialize signal from localStorage, fallback to system preference
     Effect::new(move |_| {
         #[cfg(target_arch = "wasm32")]
         {
             use leptos::web_sys;
-            let stored_dark = web_sys::window()
+            let stored = web_sys::window()
                 .and_then(|w| w.local_storage().ok())
                 .flatten()
                 .and_then(|s| s.get_item("theme").ok())
-                .flatten()
-                .map(|v| v != "light")
-                .unwrap_or(true);
-            set_is_dark.set(stored_dark);
+                .flatten();
+            let dark = match stored.as_deref() {
+                Some("dark") => true,
+                Some("light") => false,
+                _ => web_sys::window()
+                    .and_then(|w| w.match_media("(prefers-color-scheme: dark)").ok())
+                    .flatten()
+                    .map(|mql| mql.matches())
+                    .unwrap_or(false),
+            };
+            set_is_dark.set(dark);
         }
     });
 
-    // Apply .light class to <html> and persist
+    // Apply .dark class to <html> and persist to localStorage
     Effect::new(move |_| {
         let _dark = is_dark.get();
         #[cfg(target_arch = "wasm32")]
@@ -68,9 +75,9 @@ pub fn App() -> impl IntoView {
             if let Some(doc) = web_sys::window().and_then(|w| w.document()) {
                 if let Some(html) = doc.document_element() {
                     if dark {
-                        let _ = html.class_list().remove_1("light");
+                        let _ = html.class_list().add_1("dark");
                     } else {
-                        let _ = html.class_list().add_1("light");
+                        let _ = html.class_list().remove_1("dark");
                     }
                 }
             }
