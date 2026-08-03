@@ -1,0 +1,30 @@
+{
+    "hero": {
+        "greeting": "Halo, gue",
+        "role": "Principal Engineer",
+        "contact_cta": "Kontek Gue",
+        "explore_notes": "Cek Catatan Gue",
+        "stats": {
+            "years": "Tahun Pengalaman",
+            "projects": "Proyek Selesai",
+            "articles": "Artikel Ditulis"
+        }
+    },
+    "about": {
+        "eyebrow": "Tentang Gue",
+        "title": "Di Balik Kode",
+        "description_before": "Otodidak dari background Akuntansi, sekarang kerja jadi Principal Engineer dan bangun ",
+        "description_after": " — organisasi pengembangan yang fokus ke produk. Perjalanan gue di sini emang nggak konvensional, tapi justru itu yang bentuk cara gue nyelesain masalah engineering sekarang.",
+        "quote": "\"Kalau kamu belum punya kekuatan untuk mengubah dunia, teruslah melangkah. Setidaknya kamu bisa mengubah duniamu sendiri.\"",
+        "cta": "Baca Kisah Lengkap Gue"
+    },
+    "notes": {
+        "eyebrow": "Catatan",
+        "title": "Catatan Terbaru",
+        "description": "Pemikiran, pembelajaran, dan tulisan teknis gue soal software engineering.",
+        "all_link": "Semua Catatan",
+        "empty": "Belum ada catatan.",
+        "read_more": "Baca",
+        "load_error": "Gagal memuat: "
+    }
+}

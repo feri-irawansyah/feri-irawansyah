@@ -1,0 +1,9 @@
+pub mod auth;
+pub mod certifications;
+pub mod users;
+pub mod notes;
+pub mod laboratory;
+pub mod experience;
+pub mod portfolio;
+pub mod positions;
+pub mod skills;

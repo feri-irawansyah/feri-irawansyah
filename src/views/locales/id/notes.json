@@ -1,0 +1,14 @@
+{
+    "title": "Catatan",
+    "subtitle": "Artikel, pembelajaran, dan pemikiran gue soal software development.",
+    "loading": "Lagi muat catatan...",
+    "empty": "Belum ada catatan yang dipublish.",
+    "load_error": "Gagal memuat: ",
+    "back_to_notes": "Balik ke Catatan",
+    "detail_loading": "Lagi muat...",
+    "not_found_body": "Catatan nggak ketemu.",
+    "content_loading": "Lagi muat konten...",
+    "content_load_error": "Gagal memuat konten: ",
+    "toc_title": "Di halaman ini",
+    "toc_search_placeholder": "Cari heading..."
+}

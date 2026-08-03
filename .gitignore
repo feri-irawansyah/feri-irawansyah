@@ -1,0 +1,9 @@
+/target
+/dist
+/logs
+/uploads
+/.env.local
+/old
+/secrets
+.env
+CLAUDE.md

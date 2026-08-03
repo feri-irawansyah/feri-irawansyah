@@ -1,0 +1,9 @@
+{
+    "title": "Portfolio",
+    "subtitle": "Projects I've built across web, backend, and infrastructure.",
+    "loading": "Loading projects...",
+    "empty": "No projects added yet. Check back soon.",
+    "featured": "Featured",
+    "view_project": "View Project",
+    "load_error": "Failed to load: "
+}

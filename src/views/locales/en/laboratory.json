@@ -1,0 +1,20 @@
+{
+    "eyebrow": "Tech Lab",
+    "title": "Laboratory",
+    "subtitle": "Technical experiments on performance, security, architecture, and rendering.",
+    "categories": {
+        "performance": "Performance",
+        "security": "Security & DevOps",
+        "architecture": "Architecture",
+        "rendering": "Rendering",
+        "restapi": "REST API"
+    },
+    "back_to_lab": "Back to Laboratory",
+    "back_to_category": "Back to",
+    "loading": "Loading...",
+    "empty": "No experiments in this category yet.",
+    "load_error": "Failed to load: ",
+    "not_found_body": "Experiment not found.",
+    "content_loading": "Loading content...",
+    "content_load_error": "Failed to load content: "
+}

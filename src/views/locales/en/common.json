@@ -1,0 +1,10 @@
+{
+    "explore": {
+        "eyebrow": "Explore More",
+        "title": "Dig a Little Deeper",
+        "about": { "title": "About Me", "subtitle": "My story & values" },
+        "skills": { "title": "Tech Stack", "subtitle": "Tools I use daily" },
+        "experience": { "title": "Experience", "subtitle": "Work history & certs" },
+        "portfolio": { "title": "Portfolio", "subtitle": "Projects I've shipped" }
+    }
+}

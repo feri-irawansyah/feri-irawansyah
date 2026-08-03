@@ -1,0 +1,13 @@
+{
+    "eyebrow": "Career",
+    "title": "Experience & Certifications",
+    "subtitle": "Work history and certifications that shaped how I build software today.",
+    "work_history": "Work History",
+    "loading": "Loading...",
+    "empty_work": "No work history added yet.",
+    "present": "Present",
+    "current_badge": "Current",
+    "certifications": "Certifications",
+    "empty_certs": "No certifications added yet.",
+    "view_certificate": "View Certificate"
+}

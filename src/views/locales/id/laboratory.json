@@ -1,0 +1,20 @@
+{
+    "eyebrow": "Tech Lab",
+    "title": "Laboratorium",
+    "subtitle": "Eksperimen teknis gue soal performance, security, arsitektur, sampai rendering.",
+    "categories": {
+        "performance": "Performance",
+        "security": "Security & DevOps",
+        "architecture": "Architecture",
+        "rendering": "Rendering",
+        "restapi": "REST API"
+    },
+    "back_to_lab": "Balik ke Laboratorium",
+    "back_to_category": "Balik ke",
+    "loading": "Lagi muat...",
+    "empty": "Belum ada eksperimen di kategori ini.",
+    "load_error": "Gagal memuat: ",
+    "not_found_body": "Eksperimen nggak ketemu.",
+    "content_loading": "Lagi muat konten...",
+    "content_load_error": "Gagal memuat konten: "
+}

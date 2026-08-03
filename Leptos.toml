@@ -1,0 +1,17 @@
+[package]
+name = "feri-irawansyah"
+
+[[workspace]]
+name = "feri-irawansyah"
+bin-package = "views"
+lib-package = "views"
+site-root = "target/site"
+assets-dir = "public"
+site-pkg-dir = "pkg"
+tailwind-input-file = "src/views/style/tailwind.css"
+site-addr = "127.0.0.1:3000"
+reload-port = 3001
+browserquery = "defaults"
+env = "DEV"
+bin-features = ["ssr"]
+lib-features = ["hydrate"]

@@ -1,0 +1,14 @@
+{
+    "title": "Notes",
+    "subtitle": "Articles, learnings, and thoughts on software development.",
+    "loading": "Loading notes...",
+    "empty": "No notes published yet.",
+    "load_error": "Failed to load: ",
+    "back_to_notes": "Back to Notes",
+    "detail_loading": "Loading...",
+    "not_found_body": "Note not found.",
+    "content_loading": "Loading content...",
+    "content_load_error": "Failed to load content: ",
+    "toc_title": "On this page",
+    "toc_search_placeholder": "Search headings..."
+}

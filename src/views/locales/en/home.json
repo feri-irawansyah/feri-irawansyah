@@ -1,0 +1,30 @@
+{
+    "hero": {
+        "greeting": "Hi, I am",
+        "role": "Principal Engineer",
+        "contact_cta": "Contact Me",
+        "explore_notes": "Explore Notes",
+        "stats": {
+            "years": "Years Experience",
+            "projects": "Projects Done",
+            "articles": "Articles Written"
+        }
+    },
+    "about": {
+        "eyebrow": "About Me",
+        "title": "Beyond the Code",
+        "description_before": "Self-taught from an Accounting background, now working as a Principal Engineer and building ",
+        "description_after": " — a product-focused development organization. My path here wasn't conventional, but that's exactly what shaped how I approach engineering problems today.",
+        "quote": "\"If you don't have the power to change the world, keep moving forward. At least you can change your own world.\"",
+        "cta": "Read My Full Story"
+    },
+    "notes": {
+        "eyebrow": "Notes",
+        "title": "Recent Notes",
+        "description": "Thoughts, learnings, and technical writings on software engineering.",
+        "all_link": "All Notes",
+        "empty": "No notes yet.",
+        "read_more": "Read",
+        "load_error": "Failed to load: "
+    }
+}

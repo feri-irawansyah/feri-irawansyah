@@ -1,0 +1,16 @@
+[Unit]
+Description=feri-irawansyah (Leptos + Actix)
+After=network.target
+
+[Service]
+Type=simple
+User=feriapp
+Group=feriapp
+WorkingDirectory=/opt/feri-irawansyah
+ExecStart=/opt/feri-irawansyah/feri-irawansyah
+Restart=on-failure
+RestartSec=3
+# dotenvy reads ./.env relative to WorkingDirectory above — no EnvironmentFile needed.
+
+[Install]
+WantedBy=multi-user.target

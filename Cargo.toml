@@ -1,0 +1,42 @@
+[workspace]
+resolver = "3"
+
+members = [
+    "src/views",
+    "src/modules",
+    "src/repositories",
+    "src/services",
+    "src/schemas",
+    "src/typests",
+]
+
+[profile.release]
+codegen-units = 1
+lto = true
+strip = true
+
+# Used only for the WASM (hydrate) lib target via lib-profile-release below.
+# Not applied to the server binary — panic = "abort" there would let a single
+# panicking request handler abort the whole process instead of just failing
+# that request (actix normally isolates panics per-worker).
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+panic = "abort"
+
+[[workspace.metadata.leptos]]
+name = "feri-irawansyah"
+bin-package = "views"
+lib-package = "views"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+tailwind-input-file = "src/views/style/tailwind.css"
+site-addr = "127.0.0.1:3000"
+reload-port = 3001
+browserquery = "defaults"
+env = "DEV"
+bin-features = ["ssr"]
+lib-features = ["hydrate"]
+lib-profile-release = "wasm-release"
+bin-exe-name = "feri-irawansyah"
+disable-erase-components = true

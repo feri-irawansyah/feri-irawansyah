@@ -1,0 +1,11 @@
+[package]
+name = "typests"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+typst     = "0.13"
+typst-pdf = "0.13"
+typst-svg = "0.13"
+typst-kit = "0.13"
+chrono    = "0.4"

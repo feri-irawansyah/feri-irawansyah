@@ -1,0 +1,27 @@
+{
+    "badge_available": "Tersedia buat Freelance",
+    "contact_cta": "Kontek Gue",
+    "see_experience": "Rekam Jejak",
+    "eyebrow": "Tentang Gue",
+    "role": "Rust Programmer · Principal Engineer · Entrepreneur",
+    "bio_before": "Gue bangun aplikasi web, RESTful API, dan software desktop yang performanya tinggi, fokus ke arsitektur yang bersih dan scalable. Sekarang lagi mimpin ",
+    "bio_after": " — organisasi pengembangan aplikasi yang nyelesain tantangan dunia nyata lewat teknologi.",
+    "details": {
+        "birthday_label": "Tanggal Lahir",
+        "birthday_value": "9 Juni 2000",
+        "location_label": "Lokasi",
+        "location_value": "DKI Jakarta, Indonesia",
+        "education_label": "Pendidikan",
+        "education_value": "S.Ak (Akuntansi)",
+        "whatsapp_label": "WhatsApp",
+        "phone_label": "Telepon",
+        "github_label": "GitHub"
+    },
+    "journey": {
+        "eyebrow": "Kisah Gue",
+        "title": "Perjalanan Gue",
+        "read_more": "Baca kisah lengkapnya",
+        "quote": "\"Kalau kamu belum punya kekuatan untuk mengubah dunia, teruslah melangkah. Setidaknya kamu bisa mengubah duniamu sendiri. Entah sekarang atau nanti.\"",
+        "quote_author": "— Feri Irawansyah"
+    }
+}

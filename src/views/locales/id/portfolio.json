@@ -1,0 +1,9 @@
+{
+    "title": "Portofolio",
+    "subtitle": "Proyek yang udah gue bikin di web, backend, sampai infrastruktur.",
+    "loading": "Lagi muat proyek...",
+    "empty": "Belum ada proyek. Cek lagi nanti ya.",
+    "featured": "Unggulan",
+    "view_project": "Lihat Proyek",
+    "load_error": "Gagal memuat: "
+}

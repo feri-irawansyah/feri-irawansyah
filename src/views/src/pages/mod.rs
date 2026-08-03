@@ -1,0 +1,11 @@
+pub mod about;
+pub mod admin;
+pub mod cv;
+pub mod experience;
+pub mod home;
+pub mod journey;
+pub mod laboratory;
+pub mod not_found;
+pub mod notes;
+pub mod portfolio;
+pub mod skills;

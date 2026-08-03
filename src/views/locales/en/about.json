@@ -1,0 +1,27 @@
+{
+    "badge_available": "Freelance Available",
+    "contact_cta": "Contact Me",
+    "see_experience": "See Experience",
+    "eyebrow": "About Me",
+    "role": "Rust Programmer · Principal Engineer · Entrepreneur",
+    "bio_before": "I build high-performance web applications, RESTful APIs, and desktop software with a focus on clean architecture and scalability. Currently leading ",
+    "bio_after": " — an application-development organization tackling real-world challenges through technology.",
+    "details": {
+        "birthday_label": "Birthday",
+        "birthday_value": "June 9, 2000",
+        "location_label": "Location",
+        "location_value": "DKI Jakarta, Indonesia",
+        "education_label": "Education",
+        "education_value": "S.Ak (Accounting)",
+        "whatsapp_label": "WhatsApp",
+        "phone_label": "Phone",
+        "github_label": "GitHub"
+    },
+    "journey": {
+        "eyebrow": "My Story",
+        "title": "The Journey",
+        "read_more": "Read the full story",
+        "quote": "\"If you don't have the power to change the world, keep moving forward. At least you can change your own world. Whether it's now or later.\"",
+        "quote_author": "— Feri Irawansyah"
+    }
+}

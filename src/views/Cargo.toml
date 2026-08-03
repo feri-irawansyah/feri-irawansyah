@@ -1,0 +1,91 @@
+[package]
+name = "views"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "feri-irawansyah"
+path = "src/main.rs"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+modules = { path = "../modules" }
+repositories = { path = "../repositories", optional = true }
+services = { path = "../services", optional = true }
+schemas = { path = "../schemas", optional = true }
+typests = { path = "../typests", optional = true }
+
+leptos = { version = "0.8.20", default-features = false }
+leptos_actix = { version = "0.8.7", optional = true }
+leptos_meta = { version = "0.8.6", default-features = false }
+leptos_router = { version = "0.8.14", default-features = false }
+leptos_i18n = { version = "0.6", default-features = false, features = ["cookie"] }
+
+actix-web = { version = "4", optional = true }
+actix-files = { version = "0.6", optional = true }
+actix-multipart = { version = "0.7", optional = true }
+futures-util = { version = "0.3", optional = true }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"], optional = true }
+pulldown-cmark = { version = "0.12", optional = true }
+syntect = { version = "5", optional = true }
+
+wasm-bindgen = { version = "0.2", optional = true }
+wasm-bindgen-futures = { version = "0.4", optional = true }
+web-sys = { version = "0.3", optional = true, features = ["Storage", "Window", "Element", "DomTokenList", "Document", "MediaQueryList", "EventTarget", "File", "FileList", "FormData", "HtmlInputElement"] }
+gloo-net = { version = "0.6", features = ["http", "json"], optional = true }
+getrandom = { version = "0.2", features = ["js"], optional = true }
+
+anyhow = { version = "1", optional = true }
+chrono = { version = "0.4", optional = true }
+jsonwebtoken = { version = "9", optional = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", optional = true }
+leptos-struct-table = { version = "0.19", default-features = false }
+dotenvy = { version = "0.15", optional = true }
+tracing = { version = "0.1", optional = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"], optional = true }
+
+[features]
+default = []
+hydrate = [
+    "leptos/hydrate",
+    "leptos_i18n/hydrate",
+    "leptos_i18n_build/hydrate",
+    "dep:wasm-bindgen",
+    "dep:wasm-bindgen-futures",
+    "dep:web-sys",
+    "dep:getrandom",
+    "dep:gloo-net",
+]
+ssr = [
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+    "leptos_i18n/ssr",
+    "leptos_i18n/actix",
+    "leptos_i18n_build/ssr",
+    "dep:leptos_actix",
+    "dep:actix-web",
+    "dep:actix-files",
+    "dep:actix-multipart",
+    "dep:futures-util",
+    "dep:repositories",
+    "dep:services",
+    "dep:schemas",
+    "dep:dotenvy",
+    "dep:tracing",
+    "dep:tracing-subscriber",
+    "dep:reqwest",
+    "dep:pulldown-cmark",
+    "dep:syntect",
+    "dep:anyhow",
+    "dep:chrono",
+    "dep:serde_json",
+    "dep:jsonwebtoken",
+    "dep:typests",
+]
+
+[build-dependencies]
+leptos_i18n_build = { version = "0.6" }

@@ -1,0 +1,10 @@
+{
+    "explore": {
+        "eyebrow": "Jelajahi Lagi",
+        "title": "Gali Lebih Dalam",
+        "about": { "title": "Tentang Gue", "subtitle": "Cerita & nilai gue" },
+        "skills": { "title": "Tech Stack", "subtitle": "Tools yang gue pakai" },
+        "experience": { "title": "Pengalaman", "subtitle": "Riwayat kerja & sertifikasi" },
+        "portfolio": { "title": "Portofolio", "subtitle": "Proyek yang udah gue bikin" }
+    }
+}
