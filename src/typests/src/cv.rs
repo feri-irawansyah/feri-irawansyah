@@ -39,7 +39,7 @@ fn compile() -> Result<CvOutput, String> {
             Bytes::new(ICON_GLOBE.to_vec()),
         ),
         (
-            "feri-irawansyah.jpg".to_string(),
+            "img/feri-irawansyah.jpg".to_string(),
             Bytes::new(PHOTO.to_vec()),
         ),
     ];

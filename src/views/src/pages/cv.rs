@@ -17,19 +17,26 @@ pub fn CvPage() -> impl IntoView {
             description="Curriculum Vitae of Feri Irawansyah — Backend Engineer, Web Developer, AI Engineer."
             path="/cv"
         />
-        <div class="max-w-4xl mx-auto px-6 py-10">
-            <div class="flex items-center justify-between mb-6">
-                <h1 class="text-2xl font-bold text-white">"Curriculum Vitae"</h1>
+        <div class="sticky top-0 z-40 bg-base/80 backdrop-blur-sm border-b border-line">
+            <div class="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+                <a href="/about"
+                    class="inline-flex items-center gap-1.5 text-sm text-muted hover:text-teal-400 transition-colors no-underline whitespace-nowrap shrink-0">
+                    <i class="bi bi-arrow-left text-[0.9rem]"></i>
+                    "Back"
+                </a>
+                <h1 class="text-lg font-bold text-fg truncate">"Curriculum Vitae"</h1>
                 <a
                     href="/cv.pdf?dl=1"
                     download="feri-irawansyah-cv.pdf"
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-600 hover:bg-teal-500 text-white text-sm font-medium transition-colors duration-200 no-underline"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-600 hover:bg-teal-500 text-white text-sm font-medium transition-colors duration-200 no-underline whitespace-nowrap shrink-0"
                 >
                     <i class="bi bi-download"></i>
                     "Download PDF"
                 </a>
             </div>
+        </div>
 
+        <div class="max-w-4xl mx-auto px-6 py-10">
             <Suspense fallback=move || view! {
                 <div class="w-full rounded-xl border border-line bg-surface animate-pulse" style="height: 80vh;"/>
             }>

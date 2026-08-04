@@ -1,2 +1,8 @@
 [target.wasm32-unknown-unknown]
 rustflags = ["--cfg=getrandom_backend=\"wasm_js\""]
+
+# rust-lld's default debug-section layout overflows a 32-bit relocation range
+# once the typst/CV dependency tree is in the debug build. Fall back to GNU ld,
+# which doesn't have that limit.
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-Clink-arg=-fuse-ld=bfd"]

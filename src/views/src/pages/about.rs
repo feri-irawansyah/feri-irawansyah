@@ -41,20 +41,22 @@ pub fn AboutPage() -> impl IntoView {
                                 <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
                                 {t!(i18n, about.badge_available)}
                             </span>
-                            <div class="flex flex-wrap gap-3">
+                            <div class="flex flex-col gap-3 w-full max-w-xs">
                                 <a href="https://wa.me/6282323443535" target="_blank"
-                                    class="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-sm font-semibold transition-colors no-underline">
+                                    class="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-sm font-semibold text-center transition-colors no-underline">
                                     {t!(i18n, about.contact_cta)}
                                 </a>
-                                <a href="/experience"
-                                    class="px-5 py-2 border border-line text-muted hover:border-teal-500 hover:text-fg rounded-lg text-sm font-semibold transition-colors no-underline">
-                                    {t!(i18n, about.see_experience)}
-                                </a>
-                                <a href="/cv"
-                                    class="inline-flex items-center gap-2 px-5 py-2 border border-line text-muted hover:border-teal-500 hover:text-fg rounded-lg text-sm font-semibold transition-colors no-underline">
-                                    <i class="bi bi-file-person"></i>
-                                    "View CV"
-                                </a>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <a href="/experience"
+                                        class="px-3 py-2 border border-line text-muted hover:border-teal-500 hover:text-fg rounded-lg text-sm font-semibold text-center transition-colors no-underline">
+                                        {t!(i18n, about.see_experience)}
+                                    </a>
+                                    <a href="/cv"
+                                        class="inline-flex items-center justify-center gap-1.5 px-3 py-2 border border-line text-muted hover:border-teal-500 hover:text-fg rounded-lg text-sm font-semibold transition-colors no-underline">
+                                        <i class="bi bi-file-person"></i>
+                                        {t!(i18n, about.view_cv)}
+                                    </a>
+                                </div>
                             </div>
                         </div>
 

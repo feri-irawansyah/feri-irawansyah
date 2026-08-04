@@ -1,4 +1,5 @@
 pub mod database;
+pub mod cache;
 
 pub mod auth {
     pub mod auth_repository;

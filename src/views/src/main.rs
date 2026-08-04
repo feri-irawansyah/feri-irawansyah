@@ -55,6 +55,11 @@ async fn main() -> std::io::Result<()> {
     schemas::run(&pool).await.expect("migration failed");
     tracing::info!("Database connected and migrations applied");
 
+    let cache = repositories::cache::create_cache_client()
+        .await
+        .expect("valkey connection failed");
+    tracing::info!("Valkey cache connected");
+
     let auth_svc: Arc<dyn AuthService> = Arc::new(AuthServiceImpl::new(AuthServiceDeps {
         auth_repo: Arc::new(AuthRepositoryImpl::new(pool.clone())),
         jwt_secret,
@@ -63,14 +68,14 @@ async fn main() -> std::io::Result<()> {
         user_repo: Arc::new(UserRepositoryImpl::new(pool.clone())),
     }));
     let note_svc: Arc<dyn NoteService> = Arc::new(NoteServiceImpl::new(NoteServiceDeps {
-        note_repo: Arc::new(NoteRepositoryImpl::new(pool.clone())),
+        note_repo: Arc::new(NoteRepositoryImpl::new(pool.clone(), cache.clone())),
     }));
     let laboratory_svc: Arc<dyn LaboratoryService> =
         Arc::new(LaboratoryServiceImpl::new(LaboratoryServiceDeps {
             laboratory_repo: Arc::new(LaboratoryRepositoryImpl::new(pool.clone())),
         }));
     let skill_svc: Arc<dyn SkillService> = Arc::new(SkillServiceImpl::new(SkillServiceDeps {
-        skill_repo: Arc::new(SkillRepositoryImpl::new(pool.clone())),
+        skill_repo: Arc::new(SkillRepositoryImpl::new(pool.clone(), cache.clone())),
     }));
     let portfolio_svc: Arc<dyn PortfolioService> =
         Arc::new(PortfolioServiceImpl::new(PortfolioServiceDeps {
