@@ -1,4 +1,5 @@
 pub mod about;
+pub mod contact;
 pub mod admin;
 pub mod cv;
 pub mod experience;

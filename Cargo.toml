@@ -7,8 +7,11 @@ members = [
     "src/repositories",
     "src/services",
     "src/schemas",
-    "src/typests",
 ]
+
+[profile.dev]
+codegen-units = 1
+debug = 1
 
 [profile.release]
 codegen-units = 1

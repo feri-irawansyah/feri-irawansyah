@@ -48,3 +48,7 @@ impl UserService for UserServiceImpl {
         self.repo.list(limit, offset).await
     }
 }
+
+#[cfg(test)]
+#[path = "_users_test.rs"]
+mod tests;

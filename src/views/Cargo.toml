@@ -15,7 +15,6 @@ modules = { path = "../modules" }
 repositories = { path = "../repositories", optional = true }
 services = { path = "../services", optional = true }
 schemas = { path = "../schemas", optional = true }
-typests = { path = "../typests", optional = true }
 
 leptos = { version = "0.8.20", default-features = false }
 leptos_actix = { version = "0.8.7", optional = true }
@@ -33,7 +32,7 @@ syntect = { version = "5", optional = true }
 
 wasm-bindgen = { version = "0.2", optional = true }
 wasm-bindgen-futures = { version = "0.4", optional = true }
-web-sys = { version = "0.3", optional = true, features = ["Storage", "Window", "Element", "DomTokenList", "Document", "MediaQueryList", "EventTarget", "File", "FileList", "FormData", "HtmlInputElement"] }
+web-sys = { version = "0.3", optional = true, features = ["Storage", "Window", "Element", "DomTokenList", "Document", "MediaQueryList", "EventTarget", "File", "FileList", "FormData", "HtmlInputElement", "Location"] }
 gloo-net = { version = "0.6", features = ["http", "json"], optional = true }
 getrandom = { version = "0.2", features = ["js"], optional = true }
 
@@ -42,10 +41,11 @@ chrono = { version = "0.4", optional = true }
 jsonwebtoken = { version = "9", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", optional = true }
-leptos-struct-table = { version = "0.19", default-features = false }
 dotenvy = { version = "0.15", optional = true }
+tokio = { version = "1", features = ["fs"], optional = true }
 tracing = { version = "0.1", optional = true }
-tracing-subscriber = { version = "0.3", features = ["env-filter"], optional = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"], optional = true }
+tracing-appender = { version = "0.2", optional = true }
 
 [features]
 default = []
@@ -75,8 +75,10 @@ ssr = [
     "dep:services",
     "dep:schemas",
     "dep:dotenvy",
+    "dep:tokio",
     "dep:tracing",
     "dep:tracing-subscriber",
+    "dep:tracing-appender",
     "dep:reqwest",
     "dep:pulldown-cmark",
     "dep:syntect",
@@ -84,7 +86,6 @@ ssr = [
     "dep:chrono",
     "dep:serde_json",
     "dep:jsonwebtoken",
-    "dep:typests",
 ]
 
 [build-dependencies]

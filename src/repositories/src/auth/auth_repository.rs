@@ -4,6 +4,10 @@ use chrono::{DateTime, Utc};
 use modules::auth::{AuthRepository, SessionView, UserView};
 use sqlx::PgPool;
 
+#[cfg(test)]
+#[path = "_auth_test.rs"]
+mod tests;
+
 pub struct AuthRepositoryImpl {
     pool: PgPool,
 }

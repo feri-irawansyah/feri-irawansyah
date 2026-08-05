@@ -10,9 +10,10 @@ use leptos_router::{
 use crate::pages::{
     about::AboutPage,
     admin::{
-        AdminDashboard, AdminExperiencePage, AdminLaboratoryPage, AdminNotesPage,
-        AdminPortfolioPage, AdminSkillsPage, LoginPage, UsersPage,
+        AdminDashboard, AdminExperiencePage, AdminLaboratoryPage, AdminLogsPage, AdminNotesPage,
+        AdminPortfolioPage, AdminSkillsPage, CacheManagementPage, LoginPage, UsersPage,
     },
+    contact::ContactPage,
     cv::CvPage,
     experience::ExperiencePage,
     home::HomePage,
@@ -75,9 +76,20 @@ fn Shell(is_dark: ReadSignal<bool>, set_is_dark: WriteSignal<bool>) -> impl Into
     };
 
     view! {
+        // Skip-to-content for keyboard/screen-reader users
+        <a
+            href="#main-content"
+            class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-100 focus:px-4 focus:py-2 focus:bg-teal-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-medium"
+        >
+            "Skip to content"
+        </a>
+
         // ── Left Sidebar — public pages only, desktop/tablet only ────────
         <Show when=move || !is_admin()>
-            <aside class="hidden md:flex fixed left-4 top-1/2 -translate-y-1/2 h-[80vh] flex-col items-start justify-center gap-3 z-50">
+            <aside
+                aria-label="Main navigation"
+                class="hidden md:flex fixed left-4 top-1/2 -translate-y-1/2 h-[80vh] flex-col items-start justify-center gap-3 z-50"
+            >
                 <A href="/" attr:class="group/item inline-flex items-center h-12 rounded-full bg-line hover:bg-teal-600 [&.active]:bg-teal-500 transition-colors duration-200 px-3.5 hover:pr-5 [&.active]:pr-5 no-underline">
                     <i class="bi bi-house-fill text-muted group-hover/item:text-white text-[1.25rem] transition-colors duration-200 shrink-0"></i>
                     <span class="text-sm font-medium text-white whitespace-nowrap max-w-0 group-hover/item:max-w-32.5 overflow-hidden transition-all duration-200 group-hover/item:ml-2">
@@ -133,38 +145,48 @@ fn Shell(is_dark: ReadSignal<bool>, set_is_dark: WriteSignal<bool>) -> impl Into
                 on:click=move |_| set_nav_open.set(false)
             ></div>
 
-            <div class="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-                <A href="/" attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
+            <nav
+                aria-label="Mobile navigation"
+                class="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
+            >
+                <A href="/" attr:aria-label="Home"
+                    attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
                     attr:style=move || fan_style(-93.6, 16.5)
                     on:click=move |_| set_nav_open.set(false)>
                     <i class="bi bi-house-fill text-[1.05rem]"></i>
                 </A>
-                <A href="/about" attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
+                <A href="/about" attr:aria-label="About"
+                    attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
                     attr:style=move || fan_style(-76.2, 56.7)
                     on:click=move |_| set_nav_open.set(false)>
                     <i class="bi bi-person-fill text-[1.05rem]"></i>
                 </A>
-                <A href="/portfolio" attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
+                <A href="/portfolio" attr:aria-label="Portfolio"
+                    attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
                     attr:style=move || fan_style(-42.6, 84.9)
                     on:click=move |_| set_nav_open.set(false)>
                     <i class="bi bi-grid-fill text-[1.05rem]"></i>
                 </A>
-                <A href="/experience" attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
+                <A href="/experience" attr:aria-label="Experience"
+                    attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
                     attr:style=move || fan_style(0.0, 95.0)
                     on:click=move |_| set_nav_open.set(false)>
                     <i class="bi bi-person-workspace text-[1.05rem]"></i>
                 </A>
-                <A href="/notes" attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
+                <A href="/notes" attr:aria-label="Notes"
+                    attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
                     attr:style=move || fan_style(42.6, 84.9)
                     on:click=move |_| set_nav_open.set(false)>
                     <i class="bi bi-journal-text text-[1.05rem]"></i>
                 </A>
-                <A href="/skills" attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
+                <A href="/skills" attr:aria-label="Skills"
+                    attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
                     attr:style=move || fan_style(76.2, 56.7)
                     on:click=move |_| set_nav_open.set(false)>
                     <i class="bi bi-cpu text-[1.05rem]"></i>
                 </A>
-                <A href="/laboratory" attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
+                <A href="/laboratory" attr:aria-label="Laboratory"
+                    attr:class="group/item absolute w-11 h-11 rounded-full bg-surface border border-line shadow-lg flex items-center justify-center text-muted hover:text-teal-500 hover:border-teal-500 [&.active]:text-teal-500 [&.active]:border-teal-500 no-underline"
                     attr:style=move || fan_style(93.6, 16.5)
                     on:click=move |_| set_nav_open.set(false)>
                     <i class="bi bi-flask text-[1.05rem]"></i>
@@ -173,11 +195,13 @@ fn Shell(is_dark: ReadSignal<bool>, set_is_dark: WriteSignal<bool>) -> impl Into
                 // Toggle FAB
                 <button
                     on:click=move |_| set_nav_open.update(|o| *o = !*o)
+                    aria-label=move || if nav_open.get() { "Close navigation" } else { "Open navigation" }
+                    aria-expanded=move || nav_open.get().to_string()
                     class="relative w-14 h-14 rounded-full bg-teal-600 hover:bg-teal-500 text-white flex items-center justify-center shadow-lg shadow-teal-900/30 transition-transform duration-200 cursor-pointer"
                     class:rotate-45=move || nav_open.get()>
                     <i class="bi bi-grid-3x3-gap-fill text-[1.2rem]"></i>
                 </button>
-            </div>
+            </nav>
         </Show>
 
         // ── Top Right: Language + Dark Mode — public pages only ──────────
@@ -191,6 +215,10 @@ fn Shell(is_dark: ReadSignal<bool>, set_is_dark: WriteSignal<bool>) -> impl Into
                         };
                         i18n.set_locale(next);
                     }
+                    aria-label=move || match i18n.get_locale() {
+                        Locale::id => "Switch to English",
+                        Locale::en => "Ganti ke Bahasa Indonesia",
+                    }
                     class="w-9 h-9 rounded-full bg-line flex items-center justify-center text-muted hover:bg-teal-600 hover:text-white transition-colors duration-200 cursor-pointer text-xs font-bold">
                     {move || match i18n.get_locale() {
                         Locale::id => "EN",
@@ -199,6 +227,7 @@ fn Shell(is_dark: ReadSignal<bool>, set_is_dark: WriteSignal<bool>) -> impl Into
                 </button>
                 <button
                     on:click=move |_| set_is_dark.update(|d| *d = !*d)
+                    aria-label=move || if is_dark.get() { "Switch to light mode" } else { "Switch to dark mode" }
                     class="w-9 h-9 rounded-full bg-line flex items-center justify-center text-muted hover:bg-teal-600 hover:text-white transition-colors duration-200 cursor-pointer">
                     {move || if is_dark.get() {
                         view! { <i class="bi bi-sun-fill text-[1.05rem]"></i> }.into_any()
@@ -213,7 +242,7 @@ fn Shell(is_dark: ReadSignal<bool>, set_is_dark: WriteSignal<bool>) -> impl Into
         <div class=move || {
             if is_admin() { "min-h-screen" } else { "flex flex-col min-h-screen pb-20 md:pb-0" }
         }>
-            <main class="flex-1">
+            <main id="main-content" class="flex-1">
                 <PageTransition>
                     <Routes fallback=|| view! { <NotFoundPage/> }>
                         <Route path=path!("/")              view=HomePage/>
@@ -225,6 +254,7 @@ fn Shell(is_dark: ReadSignal<bool>, set_is_dark: WriteSignal<bool>) -> impl Into
                         <Route path=path!("/laboratory")    view=LaboratoryPage/>
                         <Route path=path!("/laboratory/:category") view=LaboratoryCategoryPage/>
                         <Route path=path!("/laboratory/:category/:slug") view=LaboratoryDetailPage/>
+                        <Route path=path!("/contact")       view=ContactPage/>
                         <Route path=path!("/cv")            view=CvPage/>
                         <Route path=path!("/about")         view=AboutPage/>
                         <Route path=path!("/about/journey/:slug") view=JourneyPage/>
@@ -236,6 +266,8 @@ fn Shell(is_dark: ReadSignal<bool>, set_is_dark: WriteSignal<bool>) -> impl Into
                         <Route path=path!("/admin/notes")   view=AdminNotesPage/>
                         <Route path=path!("/admin/skills")  view=AdminSkillsPage/>
                         <Route path=path!("/admin/laboratory") view=AdminLaboratoryPage/>
+                        <Route path=path!("/admin/cache")      view=CacheManagementPage/>
+                        <Route path=path!("/admin/logs")       view=AdminLogsPage/>
                     </Routes>
                 </PageTransition>
             </main>
@@ -265,7 +297,10 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
             <head>
                 <meta charset="utf-8"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="theme-color" content="#14b8a6"/>
                 <link rel="icon" href="/public/favicon.ico" type="image/x-icon"/>
+                <link rel="apple-touch-icon" href="/public/favicon.webp"/>
+                <link rel="alternate" type="application/rss+xml" title="Feri Irawansyah — Notes" href="/rss.xml"/>
                 <link rel="stylesheet" href="/public/bi/bootstrap-icons.min.css"/>
                 <script inner_html="(function(){document.documentElement.classList.toggle('dark',localStorage.theme==='dark'||(!('theme' in localStorage)&&window.matchMedia('(prefers-color-scheme: dark)').matches))})()"></script>
                 {ga_id.map(|id| view! {

@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use modules::laboratory::LaboratoryView;
 
-use super::layout::{pagination_footer, AdminLayout};
+use super::layout::{pagination_footer, AdminLayout, TableErrorRow, TableSkeleton};
 
 #[cfg(feature = "ssr")]
 use modules::Validate;
@@ -347,12 +347,8 @@ pub fn AdminLaboratoryPage() -> impl IntoView {
                                                 </tr>
                                             }
                                         }).collect_view().into_any(),
-                                        Some(Err(e)) => view! {
-                                            <tr><td colspan="5" class="px-5 py-6 text-red-400 text-center text-xs">{e.to_string()}</td></tr>
-                                        }.into_any(),
-                                        None => view! {
-                                            <tr><td colspan="5" class="px-5 py-6 text-muted text-center text-xs">"Memuat..."</td></tr>
-                                        }.into_any(),
+                                        Some(Err(e)) => view! { <TableErrorRow cols=5 message=e.to_string() /> }.into_any(),
+                                        None => view! { <TableSkeleton cols=5 rows=6 /> }.into_any(),
                                     }}
                                 </tbody>
                             </table>

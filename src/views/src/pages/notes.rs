@@ -407,6 +407,13 @@ fn NoteDetail(
         "https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img/notes/{}.webp",
         note.slug
     );
+    let reading_time = move || {
+        content_html
+            .get()
+            .and_then(|r| r.ok())
+            .map(|r| estimate_reading_time(&r.html))
+            .unwrap_or(0)
+    };
     view! {
         <div class="flex gap-10 items-start">
             <article class="flex-1 min-w-0 pb-12">
@@ -437,6 +444,12 @@ fn NoteDetail(
                             <span class="text-xs text-muted">
                                 {note.last_update.format("%d %B %Y").to_string()}
                             </span>
+                            {move || (reading_time() > 0).then(|| view! {
+                                <span class="flex items-center gap-1 text-xs text-muted/80">
+                                    <i class="bi bi-clock"></i>
+                                    {format!("{} min read", reading_time())}
+                                </span>
+                            })}
                         </div>
                         <h1 class="text-3xl font-extrabold mb-2 leading-tight text-gray-600 dark:text-white">{note.title}</h1>
                         <p class="text-gray-500 dark:text-white/70 text-[1.05rem] mb-4">{note.description}</p>
@@ -522,6 +535,20 @@ fn NoteToc(
             </nav>
         </aside>
     }
+}
+
+fn estimate_reading_time(html: &str) -> u32 {
+    let mut in_tag = false;
+    let text: String = html
+        .chars()
+        .filter(|&c| {
+            if c == '<' { in_tag = true; false }
+            else if c == '>' { in_tag = false; false }
+            else { !in_tag }
+        })
+        .collect();
+    let words = text.split_whitespace().count();
+    ((words as f32 / 200.0).ceil() as u32).max(1)
 }
 
 fn json_escape(s: &str) -> String {

@@ -129,7 +129,7 @@ impl AuthService for AuthServiceImpl {
         })
     }
 
-    async fn refresh(&self, refresh_token: &str) -> Result<String> {
+    async fn refresh(&self, refresh_token: &str, ip: &str) -> Result<LoginResult> {
         let session = self
             .repo
             .find_session_by_token(refresh_token)
@@ -147,7 +147,14 @@ impl AuthService for AuthServiceImpl {
             .await?
             .ok_or_else(|| anyhow!("User not found"))?;
 
-        self.create_access_token(user.id, &user.email, user.client_category)
+        // Rotate: invalidate old token, issue a fresh one
+        self.repo.delete_session_by_token(refresh_token).await?;
+        let new_refresh = Uuid::new_v4().to_string();
+        let expired_at = Utc::now() + Duration::days(7);
+        self.repo.create_session(user.id, &new_refresh, ip, expired_at).await?;
+
+        let access_token = self.create_access_token(user.id, &user.email, user.client_category)?;
+        Ok(LoginResult { access_token, refresh_token: new_refresh })
     }
 
     async fn logout(&self, refresh_token: &str) -> Result<()> {
@@ -163,3 +170,7 @@ impl AuthService for AuthServiceImpl {
         Ok(data.claims)
     }
 }
+
+#[cfg(test)]
+#[path = "_auth_test.rs"]
+mod tests;

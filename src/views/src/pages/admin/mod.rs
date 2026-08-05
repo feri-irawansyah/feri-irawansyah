@@ -1,18 +1,22 @@
+pub mod cache;
 pub mod dashboard;
 pub mod experience;
 pub mod laboratory;
 pub mod layout;
 pub mod login;
+pub mod logs;
 pub mod notes;
 pub mod portfolio;
 pub mod skills;
 pub mod users;
 
+pub use cache::CacheManagementPage;
 pub use dashboard::AdminDashboard;
 pub use experience::AdminExperiencePage;
 pub use laboratory::AdminLaboratoryPage;
 pub use layout::AdminLayout;
 pub use login::LoginPage;
+pub use logs::AdminLogsPage;
 pub use notes::AdminNotesPage;
 pub use portfolio::AdminPortfolioPage;
 pub use skills::AdminSkillsPage;

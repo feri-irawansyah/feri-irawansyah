@@ -3,6 +3,7 @@ use async_trait::async_trait;
 use modules::notes::{NoteCommand, NoteService, NoteView};
 use std::sync::Arc;
 
+
 use crate::notes::NoteServiceDeps;
 
 pub struct NoteServiceImpl {
@@ -53,7 +54,15 @@ impl NoteService for NoteServiceImpl {
         self.repo.update(id, input).await
     }
 
+    async fn toggle_enabled(&self, id: i32, enabled: bool) -> Result<bool> {
+        self.repo.toggle_enabled(id, enabled).await
+    }
+
     async fn delete(&self, id: i32) -> Result<bool> {
         self.repo.delete(id).await
     }
 }
+
+#[cfg(test)]
+#[path = "_notes_test.rs"]
+mod tests;

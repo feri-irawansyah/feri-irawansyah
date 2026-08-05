@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use modules::auth::Claims;
 
-use super::layout::AdminLayout;
+use super::layout::{AdminLayout, ErrorCard};
 
 #[server]
 pub async fn get_admin_session() -> Result<Claims, ServerFnError> {
@@ -194,11 +194,7 @@ pub fn AdminDashboard() -> impl IntoView {
                                     }>
                                         {move || engagement.get().map(|r| match r {
                                             Ok(e) => view! { <EngagementCard summary=e/> }.into_any(),
-                                            Err(e) => view! {
-                                                <div class="bg-surface border border-line rounded-2xl p-4 text-center text-muted text-sm">
-                                                    "Engagement belum bisa dimuat: " {e.to_string()}
-                                                </div>
-                                            }.into_any(),
+                                            Err(e) => view! { <ErrorCard message=e.to_string() /> }.into_any(),
                                         })}
                                     </Suspense>
                                 </div>
@@ -263,12 +259,7 @@ pub fn AdminDashboard() -> impl IntoView {
                                             </div>
                                         }.into_any(),
                                         Ok(stats) => view! { <VisitorChart stats=stats/> }.into_any(),
-                                        Err(e) => view! {
-                                            <div class="bg-surface border border-line rounded-2xl p-6 text-center text-muted text-sm">
-                                                <i class="bi bi-exclamation-triangle text-teal-500 mr-1.5"></i>
-                                                "Analytics belum bisa dimuat: " {e.to_string()}
-                                            </div>
-                                        }.into_any(),
+                                        Err(e) => view! { <ErrorCard message=e.to_string() /> }.into_any(),
                                     })}
                                 </Suspense>
                             </div>
@@ -289,11 +280,7 @@ pub fn AdminDashboard() -> impl IntoView {
                                                 </div>
                                             }.into_any(),
                                             Ok(rows) => view! { <TopPagesCard pages=rows/> }.into_any(),
-                                            Err(e) => view! {
-                                                <div class="bg-surface border border-line rounded-2xl p-6 text-center text-muted text-sm">
-                                                    "Belum bisa dimuat: " {e.to_string()}
-                                                </div>
-                                            }.into_any(),
+                                            Err(e) => view! { <ErrorCard message=e.to_string() /> }.into_any(),
                                         })}
                                     </Suspense>
                                 </div>
@@ -312,11 +299,7 @@ pub fn AdminDashboard() -> impl IntoView {
                                                 </div>
                                             }.into_any(),
                                             Ok(rows) => view! { <TrafficSourcesCard sources=rows/> }.into_any(),
-                                            Err(e) => view! {
-                                                <div class="bg-surface border border-line rounded-2xl p-6 text-center text-muted text-sm">
-                                                    "Belum bisa dimuat: " {e.to_string()}
-                                                </div>
-                                            }.into_any(),
+                                            Err(e) => view! { <ErrorCard message=e.to_string() /> }.into_any(),
                                         })}
                                     </Suspense>
                                 </div>
@@ -338,11 +321,7 @@ pub fn AdminDashboard() -> impl IntoView {
                                                 </div>
                                             }.into_any(),
                                             Ok(rows) => view! { <DeviceBreakdownCard devices=rows/> }.into_any(),
-                                            Err(e) => view! {
-                                                <div class="bg-surface border border-line rounded-2xl p-6 text-center text-muted text-sm">
-                                                    "Belum bisa dimuat: " {e.to_string()}
-                                                </div>
-                                            }.into_any(),
+                                            Err(e) => view! { <ErrorCard message=e.to_string() /> }.into_any(),
                                         })}
                                     </Suspense>
                                 </div>
@@ -361,11 +340,7 @@ pub fn AdminDashboard() -> impl IntoView {
                                                 </div>
                                             }.into_any(),
                                             Ok(rows) => view! { <GeoBreakdownCard countries=rows/> }.into_any(),
-                                            Err(e) => view! {
-                                                <div class="bg-surface border border-line rounded-2xl p-6 text-center text-muted text-sm">
-                                                    "Belum bisa dimuat: " {e.to_string()}
-                                                </div>
-                                            }.into_any(),
+                                            Err(e) => view! { <ErrorCard message=e.to_string() /> }.into_any(),
                                         })}
                                     </Suspense>
                                 </div>

@@ -47,46 +47,71 @@ where
         let service = self.service.clone();
 
         Box::pin(async move {
-            let mut refreshed_cookie: Option<String> = None;
+            let mut refreshed_cookies: Vec<String> = Vec::new();
 
             if let Some(auth_svc) = req.app_data::<web::Data<Arc<dyn AuthService>>>().cloned() {
                 // Extract cookie values first so we release the borrow on req
                 let access_val = req.cookie("access_token").map(|c| c.value().to_owned());
                 let refresh_val = req.cookie("refresh_token").map(|c| c.value().to_owned());
 
+                let ip = req
+                    .connection_info()
+                    .realip_remote_addr()
+                    .unwrap_or("unknown")
+                    .to_owned();
+                let path = req.path().to_owned();
+
                 // 1. Try access_token
-                if let Some(token) = access_val
-                    && let Ok(claims) = auth_svc.validate_access_token(&token)
-                {
-                    req.extensions_mut().insert(claims);
+                if let Some(token) = access_val {
+                    match auth_svc.validate_access_token(&token) {
+                        Ok(claims) => {
+                            tracing::debug!(ip, path, user_id = claims.sub, "auth ok");
+                            req.extensions_mut().insert(claims);
+                        }
+                        Err(e) => {
+                            tracing::warn!(ip, path, error = %e, "access_token invalid");
+                        }
+                    }
                 }
 
                 // 2. Fall back to refresh_token
                 if req.extensions().get::<Claims>().is_none()
                     && let Some(token) = refresh_val
-                    && let Ok(new_token) = auth_svc.refresh(&token).await
-                    && let Ok(claims) = auth_svc.validate_access_token(&new_token)
                 {
-                    req.extensions_mut().insert(claims);
+                    match auth_svc.refresh(&token, &ip).await {
+                        Ok(result) => {
+                            if let Ok(claims) = auth_svc.validate_access_token(&result.access_token) {
+                                tracing::info!(ip, path, user_id = claims.sub, "token refreshed");
+                                req.extensions_mut().insert(claims);
 
-                    let secure = req
-                        .app_data::<web::Data<leptos::config::LeptosOptions>>()
-                        .is_some_and(|o| o.env == leptos::config::Env::PROD);
-                    refreshed_cookie = Some(format!(
-                        "access_token={}; HttpOnly; SameSite=Strict; Path=/; Max-Age=900{}",
-                        new_token,
-                        if secure { "; Secure" } else { "" }
-                    ));
+                                let secure = req
+                                    .app_data::<web::Data<leptos::config::LeptosOptions>>()
+                                    .is_some_and(|o| o.env == leptos::config::Env::PROD);
+                                let s = if secure { "; Secure" } else { "" };
+                                refreshed_cookies.push(format!(
+                                    "access_token={}; HttpOnly; SameSite=Strict; Path=/; Max-Age=900{s}",
+                                    result.access_token,
+                                ));
+                                refreshed_cookies.push(format!(
+                                    "refresh_token={}; HttpOnly; SameSite=Strict; Path=/; Max-Age=604800{s}",
+                                    result.refresh_token,
+                                ));
+                            }
+                        }
+                        Err(e) => {
+                            tracing::warn!(ip, path, error = %e, "refresh_token invalid or expired");
+                        }
+                    }
                 }
             }
 
             let mut res = service.call(req).await?;
 
-            // Attach new access_token cookie if a refresh occurred
-            if let Some(cookie) = refreshed_cookie
-                && let Ok(val) = HeaderValue::from_str(&cookie)
-            {
-                res.headers_mut().append(SET_COOKIE, val);
+            // Attach rotated cookies if a refresh occurred
+            for cookie in &refreshed_cookies {
+                if let Ok(val) = HeaderValue::from_str(cookie) {
+                    res.headers_mut().append(SET_COOKIE, val);
+                }
             }
 
             Ok(res)

@@ -1,58 +1,65 @@
 use leptos::prelude::*;
+
 use crate::seo::Seo;
+
+const PDF_PATH: &str = "/public/cv/feri-irawansyah.pdf";
 
 #[allow(non_snake_case)]
 #[component]
 pub fn CvPage() -> impl IntoView {
-    let page_count = Resource::new(|| (), |_| async move {
-        #[cfg(feature = "ssr")]
-        { typests::cv::cv_page_count().unwrap_or(1) }
-        #[cfg(not(feature = "ssr"))]
-        { 1usize }
-    });
-
     view! {
         <Seo
             title="CV — Feri Irawansyah"
-            description="Curriculum Vitae of Feri Irawansyah — Backend Engineer, Web Developer, AI Engineer."
+            description="Curriculum Vitae Feri Irawansyah — Rust programmer dan Principal Engineer. Preview dan download PDF."
             path="/cv"
         />
-        <div class="sticky top-0 z-40 bg-base/80 backdrop-blur-sm border-b border-line">
-            <div class="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
-                <a href="/about"
-                    class="inline-flex items-center gap-1.5 text-sm text-muted hover:text-teal-400 transition-colors no-underline whitespace-nowrap shrink-0">
-                    <i class="bi bi-arrow-left text-[0.9rem]"></i>
-                    "Back"
-                </a>
-                <h1 class="text-lg font-bold text-fg truncate">"Curriculum Vitae"</h1>
-                <a
-                    href="/cv.pdf?dl=1"
-                    download="feri-irawansyah-cv.pdf"
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-600 hover:bg-teal-500 text-white text-sm font-medium transition-colors duration-200 no-underline whitespace-nowrap shrink-0"
-                >
-                    <i class="bi bi-download"></i>
-                    "Download PDF"
-                </a>
-            </div>
-        </div>
+        <div class="py-4">
+            <div class="max-w-5xl mx-auto px-6 py-12">
 
-        <div class="max-w-4xl mx-auto px-6 py-10">
-            <Suspense fallback=move || view! {
-                <div class="w-full rounded-xl border border-line bg-surface animate-pulse" style="height: 80vh;"/>
-            }>
-                {move || page_count.get().map(|count| {
-                    (0..count).map(|i| view! {
-                        <div class="mb-4 rounded-xl overflow-hidden border border-line shadow-lg bg-white">
-                            <img
-                                src=format!("/cv/preview/{i}")
-                                alt=format!("CV page {}", i + 1)
-                                class="w-full h-auto block"
-                                loading=if i == 0 { "eager" } else { "lazy" }
-                            />
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <span class="text-xs font-semibold text-teal-500 uppercase tracking-widest mb-2 block">
+                            "Curriculum Vitae"
+                        </span>
+                        <h1 class="text-2xl font-extrabold text-fg">"Feri Irawansyah"</h1>
+                    </div>
+                    <a
+                        href=PDF_PATH
+                        download="feri-irawansyah-cv.pdf"
+                        class="flex items-center gap-2 px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-sm font-semibold transition-colors no-underline"
+                    >
+                        <i class="bi bi-download"></i>
+                        "Download PDF"
+                    </a>
+                </div>
+
+                <div class="bg-surface border border-line rounded-2xl overflow-hidden">
+                    <object
+                        data=PDF_PATH
+                        type="application/pdf"
+                        class="w-full"
+                        style="height: 85vh; min-height: 600px;"
+                    >
+                        <div class="flex flex-col items-center justify-center gap-4 py-20 text-center px-6">
+                            <div class="w-16 h-16 rounded-2xl bg-teal-500/10 flex items-center justify-center">
+                                <i class="bi bi-file-pdf text-teal-500 text-3xl"></i>
+                            </div>
+                            <p class="text-muted text-sm max-w-xs">
+                                "Browser kamu tidak mendukung preview PDF. Silakan download untuk melihatnya."
+                            </p>
+                            <a
+                                href=PDF_PATH
+                                download="feri-irawansyah-cv.pdf"
+                                class="flex items-center gap-2 px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-sm font-semibold transition-colors no-underline"
+                            >
+                                <i class="bi bi-download"></i>
+                                "Download PDF"
+                            </a>
                         </div>
-                    }).collect_view()
-                })}
-            </Suspense>
+                    </object>
+                </div>
+
+            </div>
         </div>
     }
 }

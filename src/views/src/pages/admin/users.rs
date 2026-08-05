@@ -83,6 +83,12 @@ pub fn UsersPage() -> impl IntoView {
     // Infinite scroll: window scroll listener, only compiled/runs in WASM
     #[cfg(target_arch = "wasm32")]
     {
+        // WASM is single-threaded — wrapping non-Send JS types to satisfy Leptos's
+        // on_cleanup bound (which requires Send + Sync for SSR/hydrate compatibility).
+        struct SendSync<T>(T);
+        unsafe impl<T> Send for SendSync<T> {}
+        unsafe impl<T> Sync for SendSync<T> {}
+
         let offset_s = offset;
         let has_more_s = has_more;
         let is_loading_s = is_loading;
@@ -114,10 +120,17 @@ pub fn UsersPage() -> impl IntoView {
                 }
             }) as Box<dyn Fn()>);
 
-            let _ = win
-                .add_event_listener_with_callback("scroll", handler.as_ref().unchecked_ref());
+            let fn_ref = SendSync(
+                handler.as_ref().unchecked_ref::<leptos::web_sys::js_sys::Function>().clone()
+            );
+            let _ = win.add_event_listener_with_callback("scroll", &fn_ref.0);
 
-            handler.forget();
+            let win_clone = SendSync(win.clone());
+            let handler = SendSync(handler);
+            on_cleanup(move || {
+                let _ = win_clone.0.remove_event_listener_with_callback("scroll", &fn_ref.0);
+                drop(handler);
+            });
         });
     }
 

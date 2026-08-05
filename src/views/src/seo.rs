@@ -51,6 +51,7 @@ const STATIC_ROUTES: &[&str] = &[
     "/experience",
     "/skills",
     "/notes",
+    "/contact",
     "/about/journey/background",
     "/about/journey/meditate",
     "/about/journey/educational",
@@ -64,6 +65,52 @@ pub async fn robots_txt() -> impl actix_web::Responder {
         .body(format!(
             "User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}/sitemap.xml\n"
         ))
+}
+
+#[cfg(feature = "ssr")]
+fn xml_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+}
+
+#[cfg(feature = "ssr")]
+pub async fn rss_xml(
+    note_svc: actix_web::web::Data<std::sync::Arc<dyn modules::notes::NoteService>>,
+) -> impl actix_web::Responder {
+    let notes = note_svc.list().await.unwrap_or_default();
+
+    let items: String = notes
+        .iter()
+        .map(|n| {
+            format!(
+                "  <item>\n    <title>{}</title>\n    <link>{SITE_URL}/notes/{}</link>\n    <description>{}</description>\n    <pubDate>{}</pubDate>\n    <guid>{SITE_URL}/notes/{}</guid>\n  </item>\n",
+                xml_escape(&n.title),
+                n.slug,
+                xml_escape(&n.description),
+                n.last_update.to_rfc2822(),
+                n.slug,
+            )
+        })
+        .collect();
+
+    let xml = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>{SITE_NAME} — Notes</title>
+    <link>{SITE_URL}/notes</link>
+    <description>Notes tentang Rust, engineering, dan teknologi oleh {SITE_NAME}.</description>
+    <language>id</language>
+    <atom:link href="{SITE_URL}/rss.xml" rel="self" type="application/rss+xml"/>
+{items}  </channel>
+</rss>"#
+    );
+
+    actix_web::HttpResponse::Ok()
+        .content_type("application/rss+xml; charset=utf-8")
+        .body(xml)
 }
 
 #[cfg(feature = "ssr")]

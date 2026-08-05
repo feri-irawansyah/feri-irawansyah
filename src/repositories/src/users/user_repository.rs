@@ -3,6 +3,10 @@ use async_trait::async_trait;
 use modules::users::{UserRepository, UserView};
 use sqlx::PgPool;
 
+#[cfg(test)]
+#[path = "_users_test.rs"]
+mod tests;
+
 const SELECT_ALL: &str = "SELECT id, email, password, fullname, mobile_phone, picture,
     google_id, client_category, activate_code, otp_generated_link,
     otp_generated_link_date, count_resend_activation, activate_time,

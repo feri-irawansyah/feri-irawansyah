@@ -5,7 +5,7 @@ use modules::positions::PositionView;
 #[cfg(feature = "ssr")]
 use modules::Validate;
 
-use super::layout::{AdminLayout, pagination_footer};
+use super::layout::{AdminLayout, TableErrorRow, TableSkeleton, pagination_footer};
 
 // ── Server functions (admin-guarded) ─────────────────────────────────────────
 
@@ -580,12 +580,8 @@ fn ExperienceSection(exp_refetch: RwSignal<u32>) -> impl IntoView {
                                             </tr>
                                         }
                                     }).collect_view().into_any(),
-                                    Some(Err(e)) => view! {
-                                        <tr><td colspan="5" class="px-5 py-6 text-red-400 text-center text-xs">{e.to_string()}</td></tr>
-                                    }.into_any(),
-                                    None => view! {
-                                        <tr><td colspan="5" class="px-5 py-6 text-muted text-center text-xs">"Memuat..."</td></tr>
-                                    }.into_any(),
+                                    Some(Err(e)) => view! { <TableErrorRow cols=5 message=e.to_string() /> }.into_any(),
+                                    None => view! { <TableSkeleton cols=5 rows=6 /> }.into_any(),
                                 }}
                             </tbody>
                         </table>
@@ -869,12 +865,8 @@ fn PositionSection(
                                             </tr>
                                         }
                                     }).collect_view().into_any(),
-                                    Some(Err(e)) => view! {
-                                        <tr><td colspan="5" class="px-5 py-6 text-red-400 text-center text-xs">{e.to_string()}</td></tr>
-                                    }.into_any(),
-                                    None => view! {
-                                        <tr><td colspan="5" class="px-5 py-6 text-muted text-center text-xs">"Memuat..."</td></tr>
-                                    }.into_any(),
+                                    Some(Err(e)) => view! { <TableErrorRow cols=5 message=e.to_string() /> }.into_any(),
+                                    None => view! { <TableSkeleton cols=5 rows=6 /> }.into_any(),
                                 }}
                             </tbody>
                         </table>

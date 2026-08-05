@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod cache;
 pub mod certifications;
 pub mod users;
 pub mod notes;

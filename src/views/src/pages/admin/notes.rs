@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use modules::notes::NoteView;
 
-use super::layout::{pagination_footer, AdminLayout};
+use super::layout::{pagination_footer, AdminLayout, TableErrorRow, TableSkeleton};
 
 #[cfg(feature = "ssr")]
 use modules::Validate;
@@ -64,6 +64,17 @@ pub async fn admin_update_note(
         .await?
         .update(id, input)
         .await
+        .map_err(|e| ServerFnError::new(e.to_string()))
+}
+
+#[server]
+pub async fn admin_toggle_note(id: i32, enabled: bool) -> Result<(), ServerFnError> {
+    crate::pages::admin::require_admin().await?;
+    note_svc()
+        .await?
+        .toggle_enabled(id, enabled)
+        .await
+        .map(|_| ())
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
 
@@ -299,7 +310,18 @@ pub fn AdminNotesPage() -> impl IntoView {
                                         Some(Ok((rows, _))) => rows.into_iter().map(|row| {
                                             let row_for_edit = row.clone();
                                             let id = row.notes_id;
-                                            let enabled = row.enabled;
+                                            let toggled = RwSignal::new(row.enabled);
+                                            let toggling = RwSignal::new(false);
+                                            let on_toggle = move |_| {
+                                                let next = !toggled.get();
+                                                toggling.set(true);
+                                                leptos::task::spawn_local(async move {
+                                                    if admin_toggle_note(id, next).await.is_ok() {
+                                                        toggled.set(next);
+                                                    }
+                                                    toggling.set(false);
+                                                });
+                                            };
                                             view! {
                                                 <tr class="border-b border-line last:border-0 hover:bg-teal-500/5 transition-colors">
                                                     <td class="px-5 py-3.5 text-muted font-mono text-xs">{row.notes_id}</td>
@@ -310,19 +332,30 @@ pub fn AdminNotesPage() -> impl IntoView {
                                                         </span>
                                                     </td>
                                                     <td class="px-5 py-3.5">
-                                                        {if enabled {
-                                                            view! {
-                                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-500/15 text-green-400">
-                                                                    "Published"
-                                                                </span>
-                                                            }.into_any()
-                                                        } else {
-                                                            view! {
-                                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-line text-muted">
-                                                                    "Hidden"
-                                                                </span>
-                                                            }.into_any()
-                                                        }}
+                                                        <button
+                                                            on:click=on_toggle
+                                                            disabled=move || toggling.get()
+                                                            title=move || if toggled.get() { "Klik untuk jadikan Draft" } else { "Klik untuk Publish" }
+                                                            class="inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        >
+                                                            <span
+                                                                class="relative inline-flex w-9 h-5 rounded-full transition-colors duration-200"
+                                                                class=("bg-teal-500", move || toggled.get())
+                                                                class=("bg-line", move || !toggled.get())
+                                                            >
+                                                                <span
+                                                                    class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"
+                                                                    class=("translate-x-4", move || toggled.get())
+                                                                ></span>
+                                                            </span>
+                                                            <span
+                                                                class="text-xs font-semibold"
+                                                                class=("text-teal-400", move || toggled.get())
+                                                                class=("text-muted", move || !toggled.get())
+                                                            >
+                                                                {move || if toggled.get() { "Published" } else { "Draft" }}
+                                                            </span>
+                                                        </button>
                                                     </td>
                                                     <td class="px-5 py-3.5">
                                                         <div class="flex items-center gap-3">
@@ -339,12 +372,8 @@ pub fn AdminNotesPage() -> impl IntoView {
                                                 </tr>
                                             }
                                         }).collect_view().into_any(),
-                                        Some(Err(e)) => view! {
-                                            <tr><td colspan="5" class="px-5 py-6 text-red-400 text-center text-xs">{e.to_string()}</td></tr>
-                                        }.into_any(),
-                                        None => view! {
-                                            <tr><td colspan="5" class="px-5 py-6 text-muted text-center text-xs">"Memuat..."</td></tr>
-                                        }.into_any(),
+                                        Some(Err(e)) => view! { <TableErrorRow cols=5 message=e.to_string() /> }.into_any(),
+                                        None => view! { <TableSkeleton cols=5 rows=6 /> }.into_any(),
                                     }}
                                 </tbody>
                             </table>

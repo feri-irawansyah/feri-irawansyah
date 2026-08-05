@@ -236,6 +236,16 @@ impl NoteRepository for NoteRepositoryImpl {
         Ok(row)
     }
 
+    async fn toggle_enabled(&self, id: i32, enabled: bool) -> Result<bool> {
+        let result = sqlx::query("UPDATE notes SET enabled = $2, last_update = NOW() WHERE notes_id = $1")
+            .bind(id)
+            .bind(enabled)
+            .execute(&self.pool)
+            .await?;
+        cache::bump_cache_version(&self.cache, DOMAIN).await;
+        Ok(result.rows_affected() > 0)
+    }
+
     async fn delete(&self, id: i32) -> Result<bool> {
         let result = sqlx::query("DELETE FROM notes WHERE notes_id = $1")
             .bind(id)

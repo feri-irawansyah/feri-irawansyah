@@ -131,8 +131,9 @@ pub fn LoginPage() -> impl IntoView {
                             <ActionForm action=login>
                                 <div class="flex flex-col gap-4">
                                     <div>
-                                        <label class="block text-sm font-medium mb-1.5 text-fg">"Email"</label>
+                                        <label attr:for="login-email" class="block text-sm font-medium mb-1.5 text-fg">"Email"</label>
                                         <input
+                                            id="login-email"
                                             type="email"
                                             name="email"
                                             required
@@ -142,8 +143,9 @@ pub fn LoginPage() -> impl IntoView {
                                         />
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium mb-1.5 text-fg">"Password"</label>
+                                        <label attr:for="login-password" class="block text-sm font-medium mb-1.5 text-fg">"Password"</label>
                                         <input
+                                            id="login-password"
                                             type="password"
                                             name="password"
                                             required

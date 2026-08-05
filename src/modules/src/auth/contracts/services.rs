@@ -13,7 +13,7 @@ pub struct LoginResult {
 #[async_trait]
 pub trait AuthService: Send + Sync {
     async fn login(&self, email: &str, password: &str, ip: &str) -> Result<LoginResult>;
-    async fn refresh(&self, refresh_token: &str) -> Result<String>;
+    async fn refresh(&self, refresh_token: &str, ip: &str) -> Result<LoginResult>;
     async fn logout(&self, refresh_token: &str) -> Result<()>;
     fn validate_access_token(&self, token: &str) -> Result<Claims>;
 }

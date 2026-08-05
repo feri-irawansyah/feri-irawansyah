@@ -81,6 +81,10 @@ pub fn AdminLayout(children: Children) -> impl IntoView {
             ("Skills", "bi-cpu-fill")
         } else if p.starts_with("/admin/laboratory") {
             ("Laboratorium", "bi-flask")
+        } else if p.starts_with("/admin/cache") {
+            ("Cache Management", "bi-server")
+        } else if p.starts_with("/admin/logs") {
+            ("Log Management", "bi-file-text")
         } else {
             ("Dashboard", "bi-speedometer2")
         }
@@ -176,6 +180,28 @@ pub fn AdminLayout(children: Children) -> impl IntoView {
                     </span>
                     "Laboratorium"
                 </A>
+
+                <p class="text-[10px] font-semibold text-muted uppercase tracking-widest px-3 pt-4 pb-2">"System"</p>
+
+                <A
+                    href="/admin/cache"
+                    attr:class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted hover:text-fg hover:bg-teal-500/10 [&.active]:bg-teal-500/15 [&.active]:text-teal-400 transition-colors no-underline group"
+                >
+                    <span class="w-7 h-7 rounded-lg bg-line group-[.active]:bg-teal-500/20 group-hover:bg-teal-500/10 flex items-center justify-center shrink-0 transition-colors">
+                        <i class="bi bi-server text-sm"></i>
+                    </span>
+                    "Cache"
+                </A>
+
+                <A
+                    href="/admin/logs"
+                    attr:class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted hover:text-fg hover:bg-teal-500/10 [&.active]:bg-teal-500/15 [&.active]:text-teal-400 transition-colors no-underline group"
+                >
+                    <span class="w-7 h-7 rounded-lg bg-line group-[.active]:bg-teal-500/20 group-hover:bg-teal-500/10 flex items-center justify-center shrink-0 transition-colors">
+                        <i class="bi bi-file-text text-sm"></i>
+                    </span>
+                    "Logs"
+                </A>
             </nav>
 
             // Bottom actions
@@ -218,6 +244,7 @@ pub fn AdminLayout(children: Children) -> impl IntoView {
                 <div class="flex items-center gap-2">
                     <button
                         on:click=move |_| set_is_dark.update(|d| *d = !*d)
+                        aria-label=move || if is_dark.get() { "Switch to light mode" } else { "Switch to dark mode" }
                         class="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-500 hover:bg-teal-500/20 transition-colors duration-200 cursor-pointer"
                     >
                         {move || if is_dark.get() {
@@ -234,6 +261,90 @@ pub fn AdminLayout(children: Children) -> impl IntoView {
                 {children()}
             </main>
         </div>
+    }
+}
+
+/// Error row for admin CRUD tables — spans all columns, shows message + reload button.
+#[allow(non_snake_case)]
+#[component]
+pub fn TableErrorRow(
+    #[prop(default = 5)] cols: usize,
+    message: String,
+) -> impl IntoView {
+    view! {
+        <tr>
+            <td colspan={cols.to_string()} class="px-5 py-10 text-center">
+                <div class="flex flex-col items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-red-500/15 flex items-center justify-center">
+                        <i class="bi bi-exclamation-triangle-fill text-red-400 text-sm"></i>
+                    </div>
+                    <p class="text-red-400 text-xs max-w-xs">{message}</p>
+                    <button
+                        type="button"
+                        on:click=|_| {
+                            #[cfg(target_arch = "wasm32")]
+                            { let _ = leptos::web_sys::window().map(|w| w.location().reload()); }
+                        }
+                        class="text-xs text-teal-400 hover:text-teal-300 underline underline-offset-2 cursor-pointer bg-transparent border-none"
+                    >
+                        "Coba Lagi"
+                    </button>
+                </div>
+            </td>
+        </tr>
+    }
+}
+
+/// Error card for non-table contexts — standalone block with message + reload button.
+#[allow(non_snake_case)]
+#[component]
+pub fn ErrorCard(message: String) -> impl IntoView {
+    view! {
+        <div class="bg-red-500/10 border border-red-500/30 rounded-2xl p-5 flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-red-500/15 flex items-center justify-center shrink-0">
+                <i class="bi bi-exclamation-triangle-fill text-red-400 text-sm"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-red-400 text-sm leading-relaxed">{message}</p>
+                <button
+                    type="button"
+                    on:click=|_| {
+                        #[cfg(target_arch = "wasm32")]
+                        { let _ = leptos::web_sys::window().map(|w| w.location().reload()); }
+                    }
+                    class="mt-2 text-xs text-teal-400 hover:text-teal-300 underline underline-offset-2 cursor-pointer bg-transparent border-none"
+                >
+                    "Coba Lagi"
+                </button>
+            </div>
+        </div>
+    }
+}
+
+/// Animated skeleton rows for admin CRUD tables while data loads.
+/// Renders `rows` shimmer rows each spanning `cols` columns.
+#[allow(non_snake_case)]
+#[component]
+pub fn TableSkeleton(
+    #[prop(default = 5)] cols: usize,
+    #[prop(default = 6)] rows: usize,
+) -> impl IntoView {
+    let col_widths = ["w-8", "w-36", "w-24", "w-20", "w-14"];
+    view! {
+        {(0..rows).map(|_| {
+            view! {
+                <tr class="border-b border-line last:border-0">
+                    {(0..cols).map(|i| {
+                        let w = col_widths[i % col_widths.len()];
+                        view! {
+                            <td class="px-5 py-[14px]">
+                                <div class={format!("h-3.5 bg-line rounded-md animate-pulse {w}")}></div>
+                            </td>
+                        }
+                    }).collect_view()}
+                </tr>
+            }
+        }).collect_view()}
     }
 }
 
