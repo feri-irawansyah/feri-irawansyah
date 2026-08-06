@@ -1,13 +1,18 @@
 #![recursion_limit = "512"]
 
-#[cfg(feature = "ssr")]
+mod auth;
+mod seo;
+mod uploads;
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    use crate::seo::{robots_txt, rss_xml, sitemap_xml};
     use actix_files::Files;
     use actix_web::*;
     use leptos::config::get_configuration;
     use leptos_actix::{LeptosRoutes, generate_route_list};
     use modules::auth::AuthService;
+    use modules::cache::CacheService;
     use modules::certifications::CertService;
     use modules::experience::ExperienceService;
     use modules::laboratory::LaboratoryService;
@@ -26,7 +31,6 @@ async fn main() -> std::io::Result<()> {
     use repositories::positions::PositionRepositoryImpl;
     use repositories::skills::SkillRepositoryImpl;
     use repositories::users::UserRepositoryImpl;
-    use modules::cache::CacheService;
     use services::auth::{AuthServiceDeps, AuthServiceImpl};
     use services::cache::{CacheServiceDeps, CacheServiceImpl};
     use services::certifications::{CertServiceDeps, CertServiceImpl};
@@ -39,8 +43,6 @@ async fn main() -> std::io::Result<()> {
     use services::users::{UserServiceDeps, UserServiceImpl};
     use std::sync::Arc;
     use views::app::{App, shell};
-    use views::features;
-    use views::seo::{robots_txt, rss_xml, sitemap_xml};
 
     dotenvy::dotenv().ok();
 
@@ -69,13 +71,22 @@ async fn main() -> std::io::Result<()> {
         tracing_subscriber::registry()
             .with(env_filter)
             .with(tracing_subscriber::fmt::layer().json())
-            .with(tracing_subscriber::fmt::layer().json().with_writer(non_blocking_file).with_ansi(false))
+            .with(
+                tracing_subscriber::fmt::layer()
+                    .json()
+                    .with_writer(non_blocking_file)
+                    .with_ansi(false),
+            )
             .init();
     } else {
         tracing_subscriber::registry()
             .with(env_filter)
             .with(tracing_subscriber::fmt::layer())
-            .with(tracing_subscriber::fmt::layer().with_writer(non_blocking_file).with_ansi(false))
+            .with(
+                tracing_subscriber::fmt::layer()
+                    .with_writer(non_blocking_file)
+                    .with_ansi(false),
+            )
             .init();
     }
     // _guard must live until process exit to flush buffered file writes
@@ -140,7 +151,7 @@ async fn main() -> std::io::Result<()> {
         let pool = pool.clone();
 
         App::new()
-            .wrap(features::auth::AuthMiddleware)
+            .wrap(auth::AuthMiddleware)
             // Transparently gzip/brotli/zstd-compresses every response (SSR
             // HTML, server-fn JSON, and the static pkg/*.wasm|js|css assets)
             // based on the client's Accept-Encoding — no precompressed files
@@ -166,7 +177,7 @@ async fn main() -> std::io::Result<()> {
             .route("/robots.txt", web::get().to(robots_txt))
             .route("/sitemap.xml", web::get().to(sitemap_xml))
             .route("/rss.xml", web::get().to(rss_xml))
-            .configure(features::uploads::configure)
+            .configure(uploads::configure)
             .leptos_routes(routes.clone(), {
                 let leptos_options = leptos_options.clone();
                 move || shell(leptos_options.clone())
@@ -177,14 +188,12 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-#[cfg(feature = "ssr")]
-async fn health(pool: actix_web::web::Data<repositories::database::PgPool>) -> actix_web::HttpResponse {
+async fn health(
+    pool: actix_web::web::Data<repositories::database::PgPool>,
+) -> actix_web::HttpResponse {
     match repositories::database::health_check(pool.get_ref()).await {
         Ok(_) => actix_web::HttpResponse::Ok().json(serde_json::json!({ "status": "ok" })),
         Err(e) => actix_web::HttpResponse::ServiceUnavailable()
             .json(serde_json::json!({ "status": "error", "detail": e.to_string() })),
     }
 }
-
-#[cfg(not(feature = "ssr"))]
-pub fn main() {}

@@ -3,18 +3,36 @@ use modules::cache::{CacheKeyInfo, CacheStats};
 use redis::AsyncCommands;
 use serde::{Serialize, de::DeserializeOwned};
 
-pub use redis::aio::ConnectionManager as CacheConn;
+pub use redis::aio::MultiplexedConnection as CacheConn;
 
 const DEFAULT_TTL_SECS: u64 = 7200;
 
-pub async fn create_cache_client() -> Result<CacheConn> {
+// pub async fn create_cache_client() -> Result<CacheConn> {
+//     dotenvy::dotenv().ok();
+
+//     let url = std::env::var("VALKEY_URL")?;
+//     let client = redis::Client::open(url)?;
+//     let manager = client.get_connection_manager().await?;
+
+//     Ok(manager)
+// }
+
+pub async fn create_cache_client() -> anyhow::Result<CacheConn> {
     dotenvy::dotenv().ok();
 
     let url = std::env::var("VALKEY_URL")?;
-    let client = redis::Client::open(url)?;
-    let manager = client.get_connection_manager().await?;
+    tracing::debug!(url, "connecting to valkey");
 
-    Ok(manager)
+    let client = redis::Client::open(url)?;
+    tracing::debug!("valkey client created");
+
+    let mut conn = client.get_multiplexed_async_connection().await?;
+    tracing::debug!("valkey connection established");
+
+    let pong: String = redis::cmd("PING").query_async(&mut conn).await?;
+    tracing::debug!(pong, "valkey ping ok");
+
+    Ok(conn)
 }
 
 /// Cache-aside read: any Valkey error or miss falls through to `None` so the
@@ -54,7 +72,10 @@ pub async fn set_cached<T: Serialize>(conn: &CacheConn, key: &str, value: &T) {
 /// `bump_cache_version` instead of enumerating and deleting each key.
 pub async fn cache_version(conn: &CacheConn, domain: &str) -> i64 {
     let mut conn = conn.clone();
-    match conn.get::<_, Option<i64>>(format!("{domain}:version")).await {
+    match conn
+        .get::<_, Option<i64>>(format!("{domain}:version"))
+        .await
+    {
         Ok(Some(v)) => v,
         Ok(None) => 0,
         Err(err) => {

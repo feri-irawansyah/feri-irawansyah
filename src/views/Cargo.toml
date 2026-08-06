@@ -3,18 +3,11 @@ name = "views"
 version = "0.1.0"
 edition = "2024"
 
-[[bin]]
-name = "feri-irawansyah"
-path = "src/main.rs"
-
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 modules = { path = "../modules" }
-repositories = { path = "../repositories", optional = true }
-services = { path = "../services", optional = true }
-schemas = { path = "../schemas", optional = true }
 
 leptos = { version = "0.8.20", default-features = false }
 leptos_actix = { version = "0.8.7", optional = true }
@@ -23,9 +16,6 @@ leptos_router = { version = "0.8.14", default-features = false }
 leptos_i18n = { version = "0.6", default-features = false, features = ["cookie"] }
 
 actix-web = { version = "4", optional = true }
-actix-files = { version = "0.6", optional = true }
-actix-multipart = { version = "0.7", optional = true }
-futures-util = { version = "0.3", optional = true }
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"], optional = true }
 pulldown-cmark = { version = "0.12", optional = true }
 syntect = { version = "5", optional = true }
@@ -41,11 +31,8 @@ chrono = { version = "0.4", optional = true }
 jsonwebtoken = { version = "9", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", optional = true }
-dotenvy = { version = "0.15", optional = true }
 tokio = { version = "1", features = ["fs"], optional = true }
 tracing = { version = "0.1", optional = true }
-tracing-subscriber = { version = "0.3", features = ["env-filter", "json"], optional = true }
-tracing-appender = { version = "0.2", optional = true }
 
 [features]
 default = []
@@ -68,17 +55,8 @@ ssr = [
     "leptos_i18n_build/ssr",
     "dep:leptos_actix",
     "dep:actix-web",
-    "dep:actix-files",
-    "dep:actix-multipart",
-    "dep:futures-util",
-    "dep:repositories",
-    "dep:services",
-    "dep:schemas",
-    "dep:dotenvy",
     "dep:tokio",
     "dep:tracing",
-    "dep:tracing-subscriber",
-    "dep:tracing-appender",
     "dep:reqwest",
     "dep:pulldown-cmark",
     "dep:syntect",

@@ -3,6 +3,7 @@ resolver = "3"
 
 members = [
     "src/views",
+    "src/server",
     "src/modules",
     "src/repositories",
     "src/services",
@@ -29,7 +30,7 @@ panic = "abort"
 
 [[workspace.metadata.leptos]]
 name = "feri-irawansyah"
-bin-package = "views"
+bin-package = "server"
 lib-package = "views"
 site-root = "target/site"
 site-pkg-dir = "pkg"
@@ -38,7 +39,6 @@ site-addr = "127.0.0.1:3000"
 reload-port = 3001
 browserquery = "defaults"
 env = "DEV"
-bin-features = ["ssr"]
 lib-features = ["hydrate"]
 lib-profile-release = "wasm-release"
 bin-exe-name = "feri-irawansyah"
