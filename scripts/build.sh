@@ -31,12 +31,16 @@ cp -r target/site "$DIST_DIR/site"
 
 echo "==> Copying public/ and preparing uploads/"
 cp -r public "$DIST_DIR/public"
+cp scripts/templates/404.html "$DIST_DIR/public/404.html"
+cp scripts/templates/429.html "$DIST_DIR/public/429.html"
+cp scripts/templates/502.html "$DIST_DIR/public/502.html"
 mkdir -p "$DIST_DIR/uploads"
 
-echo "==> Bundling nginx site, systemd unit, and server-side install script"
-mkdir -p "$DIST_DIR/nginx" "$DIST_DIR/systemd"
+echo "==> Bundling nginx site, systemd unit, valkey config, and server-side install script"
+mkdir -p "$DIST_DIR/nginx" "$DIST_DIR/systemd" "$DIST_DIR/valkey"
 cp scripts/templates/nginx.conf "$DIST_DIR/nginx/feri-irawansyah.conf"
 cp scripts/templates/feri-irawansyah.service "$DIST_DIR/systemd/feri-irawansyah.service"
+cp scripts/templates/valkey.conf "$DIST_DIR/valkey/valkey.conf"
 cp scripts/templates/install.sh "$DIST_DIR/install.sh"
 chmod +x "$DIST_DIR/install.sh"
 

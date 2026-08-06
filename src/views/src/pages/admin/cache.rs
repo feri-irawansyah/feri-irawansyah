@@ -94,7 +94,7 @@ fn fmt_ttl(secs: i64) -> String {
 #[allow(non_snake_case)]
 #[component]
 pub fn CacheManagementPage() -> impl IntoView {
-    const AIVEN_MAX: u64 = 1_073_741_824;
+    const FALLBACK_MAX: u64 = 33_554_432; // 32 MB — matches maxmemory in valkey.conf
 
     let tick = RwSignal::new(0u32);
     let confirm_flush = RwSignal::new(false);
@@ -125,7 +125,7 @@ pub fn CacheManagementPage() -> impl IntoView {
                 <div class="flex items-center justify-between mb-6">
                     <div>
                         <h2 class="text-xl font-bold text-fg">"Cache Management"</h2>
-                        <p class="text-sm text-muted mt-0.5">"Aiven Valkey — 1 GB RAM · 1 GB Disk"</p>
+                        <p class="text-sm text-muted mt-0.5">"Local Valkey — 32 MB maxmemory · allkeys-lru"</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <button
@@ -180,7 +180,7 @@ pub fn CacheManagementPage() -> impl IntoView {
                     {move || stats.get().map(|r| match r {
                         Err(e) => view! { <ErrorCard message=e.to_string() /> }.into_any(),
                         Ok(s) => {
-                            let effective_max = if s.max_bytes > 0 { s.max_bytes } else { AIVEN_MAX };
+                            let effective_max = if s.max_bytes > 0 { s.max_bytes } else { FALLBACK_MAX };
                             let pct = (s.used_bytes as f64 / effective_max as f64 * 100.0).min(100.0);
                             let hit_rate = if s.hits + s.misses > 0 {
                                 s.hits as f64 / (s.hits + s.misses) as f64 * 100.0

@@ -5,4 +5,5 @@ pub use note_service::NoteServiceImpl;
 
 pub struct NoteServiceDeps {
     pub note_repo: Arc<dyn modules::notes::NoteRepository>,
+    pub cache: connectors::cache::CacheConn,
 }

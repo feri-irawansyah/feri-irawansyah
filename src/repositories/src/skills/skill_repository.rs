@@ -3,54 +3,29 @@ use async_trait::async_trait;
 use modules::skills::{SkillCommand, SkillRepository, SkillView};
 use sqlx::PgPool;
 
-use crate::cache::{self, CacheConn};
-
-const DOMAIN: &str = "skills";
-
 pub struct SkillRepositoryImpl {
     pool: PgPool,
-    cache: CacheConn,
 }
 
 impl SkillRepositoryImpl {
-    pub fn new(pool: PgPool, cache: CacheConn) -> Self {
-        Self { pool, cache }
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
     }
 }
 
 #[async_trait]
 impl SkillRepository for SkillRepositoryImpl {
     async fn find_all(&self) -> Result<Vec<SkillView>> {
-        let version = cache::cache_version(&self.cache, DOMAIN).await;
-        let key = cache::versioned_key(DOMAIN, version, &["all"]);
-        if let Some(cached) = cache::get_cached::<Vec<SkillView>>(&self.cache, &key).await {
-            return Ok(cached);
-        }
-
         let rows = sqlx::query_as::<_, SkillView>(
             "SELECT skill_id, title, description, url_docs, image_src, progress, star, last_update
              FROM skills ORDER BY last_update",
         )
         .fetch_all(&self.pool)
         .await?;
-
-        cache::set_cached(&self.cache, &key, &rows).await;
         Ok(rows)
     }
 
     async fn find_page(&self, page: i64, per_page: i64) -> Result<(Vec<SkillView>, i64)> {
-        let version = cache::cache_version(&self.cache, DOMAIN).await;
-        let key = cache::versioned_key(
-            DOMAIN,
-            version,
-            &["page", &page.to_string(), &per_page.to_string()],
-        );
-        if let Some(cached) =
-            cache::get_cached::<(Vec<SkillView>, i64)>(&self.cache, &key).await
-        {
-            return Ok(cached);
-        }
-
         let total: i64 = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM skills")
             .fetch_one(&self.pool)
             .await?;
@@ -64,19 +39,10 @@ impl SkillRepository for SkillRepositoryImpl {
         .bind(offset)
         .fetch_all(&self.pool)
         .await?;
-
-        let result = (rows, total);
-        cache::set_cached(&self.cache, &key, &result).await;
-        Ok(result)
+        Ok((rows, total))
     }
 
     async fn find_by_id(&self, skill_id: i32) -> Result<Option<SkillView>> {
-        let version = cache::cache_version(&self.cache, DOMAIN).await;
-        let key = cache::versioned_key(DOMAIN, version, &["id", &skill_id.to_string()]);
-        if let Some(cached) = cache::get_cached::<Option<SkillView>>(&self.cache, &key).await {
-            return Ok(cached);
-        }
-
         let row = sqlx::query_as::<_, SkillView>(
             "SELECT skill_id, title, description, url_docs, image_src, progress, star, last_update
              FROM skills WHERE skill_id = $1",
@@ -84,8 +50,6 @@ impl SkillRepository for SkillRepositoryImpl {
         .bind(skill_id)
         .fetch_optional(&self.pool)
         .await?;
-
-        cache::set_cached(&self.cache, &key, &row).await;
         Ok(row)
     }
 
@@ -103,7 +67,6 @@ impl SkillRepository for SkillRepositoryImpl {
         .bind(input.star)
         .fetch_one(&self.pool)
         .await?;
-        cache::bump_cache_version(&self.cache, DOMAIN).await;
         Ok(row)
     }
 
@@ -124,7 +87,6 @@ impl SkillRepository for SkillRepositoryImpl {
         .bind(input.star)
         .fetch_optional(&self.pool)
         .await?;
-        cache::bump_cache_version(&self.cache, DOMAIN).await;
         Ok(row)
     }
 
@@ -133,7 +95,6 @@ impl SkillRepository for SkillRepositoryImpl {
             .bind(skill_id)
             .execute(&self.pool)
             .await?;
-        cache::bump_cache_version(&self.cache, DOMAIN).await;
         Ok(result.rows_affected() > 0)
     }
 }

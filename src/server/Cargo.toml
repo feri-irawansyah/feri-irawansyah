@@ -12,6 +12,7 @@ views = { path = "../views", features = ["ssr"] }
 modules = { path = "../modules" }
 repositories = { path = "../repositories" }
 services = { path = "../services" }
+connectors = { path = "../connectors" }
 schemas = { path = "../schemas" }
 
 leptos = { version = "0.8.20", features = ["ssr"] }

@@ -3,30 +3,19 @@ use async_trait::async_trait;
 use modules::notes::{NoteCommand, NoteRepository, NoteView};
 use sqlx::PgPool;
 
-use crate::cache::{self, CacheConn};
-
-const DOMAIN: &str = "notes";
-
 pub struct NoteRepositoryImpl {
     pool: PgPool,
-    cache: CacheConn,
 }
 
 impl NoteRepositoryImpl {
-    pub fn new(pool: PgPool, cache: CacheConn) -> Self {
-        Self { pool, cache }
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
     }
 }
 
 #[async_trait]
 impl NoteRepository for NoteRepositoryImpl {
     async fn find_all(&self) -> Result<Vec<NoteView>> {
-        let version = cache::cache_version(&self.cache, DOMAIN).await;
-        let key = cache::versioned_key(DOMAIN, version, &["all"]);
-        if let Some(cached) = cache::get_cached::<Vec<NoteView>>(&self.cache, &key).await {
-            return Ok(cached);
-        }
-
         let rows = sqlx::query_as::<_, NoteView>(
             "SELECT notes_id, category, title, slug, content, description,
                     COALESCE(hashtag, '{}') as hashtag,
@@ -37,18 +26,10 @@ impl NoteRepository for NoteRepositoryImpl {
         )
         .fetch_all(&self.pool)
         .await?;
-
-        cache::set_cached(&self.cache, &key, &rows).await;
         Ok(rows)
     }
 
     async fn find_recent(&self, limit: i64) -> Result<Vec<NoteView>> {
-        let version = cache::cache_version(&self.cache, DOMAIN).await;
-        let key = cache::versioned_key(DOMAIN, version, &["recent", &limit.to_string()]);
-        if let Some(cached) = cache::get_cached::<Vec<NoteView>>(&self.cache, &key).await {
-            return Ok(cached);
-        }
-
         let rows = sqlx::query_as::<_, NoteView>(
             "SELECT notes_id, category, title, slug, content, description,
                     COALESCE(hashtag, '{}') as hashtag,
@@ -60,18 +41,10 @@ impl NoteRepository for NoteRepositoryImpl {
         .bind(limit)
         .fetch_all(&self.pool)
         .await?;
-
-        cache::set_cached(&self.cache, &key, &rows).await;
         Ok(rows)
     }
 
     async fn find_by_slug(&self, slug: &str) -> Result<Option<NoteView>> {
-        let version = cache::cache_version(&self.cache, DOMAIN).await;
-        let key = cache::versioned_key(DOMAIN, version, &["slug", slug]);
-        if let Some(cached) = cache::get_cached::<Option<NoteView>>(&self.cache, &key).await {
-            return Ok(cached);
-        }
-
         let row = sqlx::query_as::<_, NoteView>(
             "SELECT notes_id, category, title, slug, content, description,
                     COALESCE(hashtag, '{}') as hashtag,
@@ -83,22 +56,10 @@ impl NoteRepository for NoteRepositoryImpl {
         .bind(slug)
         .fetch_optional(&self.pool)
         .await?;
-
-        cache::set_cached(&self.cache, &key, &row).await;
         Ok(row)
     }
 
     async fn find_by_category(&self, category: &str) -> Result<Vec<NoteView>> {
-        // Intentionally does not filter on `enabled` — this is used for
-        // categories (like "journey") that are hidden from the general
-        // find_all/find_recent/find_paginated feed via enabled = false,
-        // but still need to be fetchable by callers that know the category.
-        let version = cache::cache_version(&self.cache, DOMAIN).await;
-        let key = cache::versioned_key(DOMAIN, version, &["category", category]);
-        if let Some(cached) = cache::get_cached::<Vec<NoteView>>(&self.cache, &key).await {
-            return Ok(cached);
-        }
-
         let rows = sqlx::query_as::<_, NoteView>(
             "SELECT notes_id, category, title, slug, content, description,
                     COALESCE(hashtag, '{}') as hashtag,
@@ -110,29 +71,14 @@ impl NoteRepository for NoteRepositoryImpl {
         .bind(category)
         .fetch_all(&self.pool)
         .await?;
-
-        cache::set_cached(&self.cache, &key, &rows).await;
         Ok(rows)
     }
 
     async fn find_paginated(&self, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)> {
-        let version = cache::cache_version(&self.cache, DOMAIN).await;
-        let key = cache::versioned_key(
-            DOMAIN,
-            version,
-            &["page", &page.to_string(), &per_page.to_string()],
-        );
-        if let Some(cached) =
-            cache::get_cached::<(Vec<NoteView>, i64)>(&self.cache, &key).await
-        {
-            return Ok(cached);
-        }
-
-        let total: i64 = sqlx::query_scalar::<_, i64>(
-            "SELECT COUNT(*) FROM notes WHERE enabled = TRUE",
-        )
-        .fetch_one(&self.pool)
-        .await?;
+        let total: i64 =
+            sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM notes WHERE enabled = TRUE")
+                .fetch_one(&self.pool)
+                .await?;
         let offset = (page - 1).max(0) * per_page;
         let rows = sqlx::query_as::<_, NoteView>(
             "SELECT notes_id, category, title, slug, content, description,
@@ -146,10 +92,7 @@ impl NoteRepository for NoteRepositoryImpl {
         .bind(offset)
         .fetch_all(&self.pool)
         .await?;
-
-        let result = (rows, total);
-        cache::set_cached(&self.cache, &key, &result).await;
-        Ok(result)
+        Ok((rows, total))
     }
 
     async fn find_all_admin(&self) -> Result<Vec<NoteView>> {
@@ -206,7 +149,6 @@ impl NoteRepository for NoteRepositoryImpl {
         .bind(input.enabled)
         .fetch_one(&self.pool)
         .await?;
-        cache::bump_cache_version(&self.cache, DOMAIN).await;
         Ok(row)
     }
 
@@ -232,17 +174,16 @@ impl NoteRepository for NoteRepositoryImpl {
         .bind(input.enabled)
         .fetch_optional(&self.pool)
         .await?;
-        cache::bump_cache_version(&self.cache, DOMAIN).await;
         Ok(row)
     }
 
     async fn toggle_enabled(&self, id: i32, enabled: bool) -> Result<bool> {
-        let result = sqlx::query("UPDATE notes SET enabled = $2, last_update = NOW() WHERE notes_id = $1")
-            .bind(id)
-            .bind(enabled)
-            .execute(&self.pool)
-            .await?;
-        cache::bump_cache_version(&self.cache, DOMAIN).await;
+        let result =
+            sqlx::query("UPDATE notes SET enabled = $2, last_update = NOW() WHERE notes_id = $1")
+                .bind(id)
+                .bind(enabled)
+                .execute(&self.pool)
+                .await?;
         Ok(result.rows_affected() > 0)
     }
 
@@ -251,7 +192,6 @@ impl NoteRepository for NoteRepositoryImpl {
             .bind(id)
             .execute(&self.pool)
             .await?;
-        cache::bump_cache_version(&self.cache, DOMAIN).await;
         Ok(result.rows_affected() > 0)
     }
 }

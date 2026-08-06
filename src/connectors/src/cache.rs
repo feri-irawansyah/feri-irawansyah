@@ -7,37 +7,24 @@ pub use redis::aio::MultiplexedConnection as CacheConn;
 
 const DEFAULT_TTL_SECS: u64 = 7200;
 
-// pub async fn create_cache_client() -> Result<CacheConn> {
-//     dotenvy::dotenv().ok();
-
-//     let url = std::env::var("VALKEY_URL")?;
-//     let client = redis::Client::open(url)?;
-//     let manager = client.get_connection_manager().await?;
-
-//     Ok(manager)
-// }
-
 pub async fn create_cache_client() -> anyhow::Result<CacheConn> {
     dotenvy::dotenv().ok();
 
     let url = std::env::var("VALKEY_URL")?;
     tracing::debug!(url, "connecting to valkey");
 
-    let client = redis::Client::open(url)?;
+    let client = redis::Client::open(url.as_str())?;
     tracing::debug!("valkey client created");
 
     let mut conn = client.get_multiplexed_async_connection().await?;
     tracing::debug!("valkey connection established");
 
     let pong: String = redis::cmd("PING").query_async(&mut conn).await?;
-    tracing::debug!(pong, "valkey ping ok");
+    tracing::info!(pong, "valkey connected");
 
     Ok(conn)
 }
 
-/// Cache-aside read: any Valkey error or miss falls through to `None` so the
-/// caller always has a working path to Postgres. Never let a cache failure
-/// fail the request.
 pub async fn get_cached<T: DeserializeOwned>(conn: &CacheConn, key: &str) -> Option<T> {
     let mut conn = conn.clone();
     let raw: Option<String> = match conn.get(key).await {

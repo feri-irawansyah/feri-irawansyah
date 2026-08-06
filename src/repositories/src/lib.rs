@@ -1,6 +1,4 @@
-pub mod common;
 pub mod database;
-pub use common::cache;
 
 pub mod auth {
     pub mod auth_repository;

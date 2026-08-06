@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 modules = { path = "../modules" }
 repositories = { path = "../repositories" }
+connectors = { path = "../connectors" }
 
 anyhow = "1"
 async-trait = "0.1"

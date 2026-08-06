@@ -29,6 +29,14 @@ fi
 echo "==> Ensuring nginx is installed"
 command -v nginx >/dev/null || { apt-get update && apt-get install -y nginx; }
 
+echo "==> Ensuring valkey-server is installed and configured"
+if ! command -v valkey-server >/dev/null 2>&1; then
+    apt-get update && apt-get install -y valkey-server
+fi
+cp "$APP_DIR/valkey/valkey.conf" /etc/valkey/valkey.conf
+systemctl enable valkey-server 2>/dev/null || true
+systemctl restart valkey-server
+
 echo "==> Ensuring system user '$APP_USER' exists"
 id -u "$APP_USER" >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin "$APP_USER"
 

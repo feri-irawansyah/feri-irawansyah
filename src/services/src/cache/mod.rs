@@ -1,4 +1,4 @@
-use repositories::cache::CacheConn;
+use connectors::cache::CacheConn;
 
 pub mod cache_service;
 pub use cache_service::CacheServiceImpl;

@@ -1,6 +1,7 @@
 {
     "material-icon-theme.folders.associations": {
         "typests": "pdf",
+        "connectors": "connection"
     },
     "breadcrumbs.symbolSortOrder": "name",
     "files.insertFinalNewline": true,
