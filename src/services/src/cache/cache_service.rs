@@ -1,6 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use connectors::cache::CacheConn;
+use connectors::cache::{CacheConn, CacheStore};
 use modules::cache::{CacheKeyInfo, CacheService, CacheStats};
 
 use crate::cache::CacheServiceDeps;
@@ -18,22 +18,18 @@ impl CacheServiceImpl {
 #[async_trait]
 impl CacheService for CacheServiceImpl {
     async fn get_stats(&self) -> Result<CacheStats> {
-        let mut conn = self.conn.clone();
-        connectors::cache::get_stats(&mut conn).await
+        self.conn.get_stats().await
     }
 
     async fn get_keys(&self) -> Result<Vec<CacheKeyInfo>> {
-        let mut conn = self.conn.clone();
-        connectors::cache::get_keys(&mut conn).await
+        self.conn.get_keys().await
     }
 
     async fn flush_all(&self) -> Result<()> {
-        let mut conn = self.conn.clone();
-        connectors::cache::flush_all(&mut conn).await
+        self.conn.flush_all().await
     }
 
     async fn delete_key(&self, key: String) -> Result<()> {
-        let mut conn = self.conn.clone();
-        connectors::cache::delete_key(&mut conn, &key).await
+        self.conn.delete_key(&key).await
     }
 }

@@ -42,9 +42,7 @@ impl SkillService for SkillServiceImpl {
             version,
             &["page", &page.to_string(), &per_page.to_string()],
         );
-        if let Some(cached) =
-            cache::get_cached::<(Vec<SkillView>, i64)>(&self.cache, &key).await
-        {
+        if let Some(cached) = cache::get_cached::<(Vec<SkillView>, i64)>(&self.cache, &key).await {
             return Ok(cached);
         }
         let result = self.repo.find_page(page, per_page).await?;

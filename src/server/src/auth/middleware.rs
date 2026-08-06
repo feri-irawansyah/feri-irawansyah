@@ -80,7 +80,8 @@ where
                 {
                     match auth_svc.refresh(&token, &ip).await {
                         Ok(result) => {
-                            if let Ok(claims) = auth_svc.validate_access_token(&result.access_token) {
+                            if let Ok(claims) = auth_svc.validate_access_token(&result.access_token)
+                            {
                                 tracing::info!(ip, path, user_id = claims.sub, "token refreshed");
                                 req.extensions_mut().insert(claims);
 
@@ -118,3 +119,7 @@ where
         })
     }
 }
+
+#[cfg(test)]
+#[path = "_middleware_test.rs"]
+mod tests;

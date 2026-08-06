@@ -15,7 +15,9 @@ pub struct UserServiceImpl {
 
 impl UserServiceImpl {
     pub fn new(deps: UserServiceDeps) -> Self {
-        Self { repo: deps.user_repo }
+        Self {
+            repo: deps.user_repo,
+        }
     }
 }
 
@@ -33,7 +35,9 @@ impl UserService for UserServiceImpl {
             .hash_password(password.as_bytes(), &salt)
             .map_err(|e| anyhow!("Hash error: {e}"))?
             .to_string();
-        self.repo.create(email, &hash, fullname, client_category).await
+        self.repo
+            .create(email, &hash, fullname, client_category)
+            .await
     }
 
     async fn find_by_id(&self, id: i32) -> Result<Option<UserView>> {

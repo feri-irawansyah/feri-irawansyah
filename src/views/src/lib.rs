@@ -9,6 +9,8 @@ pub mod features;
 pub mod markdown;
 pub mod pages;
 pub mod seo;
+#[cfg(all(test, feature = "ssr"))]
+mod tests;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]

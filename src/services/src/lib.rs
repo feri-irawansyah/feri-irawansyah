@@ -1,10 +1,10 @@
 pub mod auth;
 pub mod cache;
 pub mod certifications;
-pub mod users;
-pub mod notes;
-pub mod laboratory;
 pub mod experience;
+pub mod laboratory;
+pub mod notes;
 pub mod portfolio;
 pub mod positions;
 pub mod skills;
+pub mod users;

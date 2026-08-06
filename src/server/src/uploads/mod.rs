@@ -1,9 +1,9 @@
-mod supabase;
-
 use actix_multipart::Multipart;
 use actix_web::{HttpMessage, HttpRequest, HttpResponse, web};
+use connectors::supabase::StorageStore;
 use futures_util::StreamExt as _;
 use modules::auth::Claims;
+use std::sync::Arc;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.route("/api/admin/uploads", web::post().to(upload_image));
@@ -13,7 +13,11 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
 // Nginx would reject anything larger before it ever reaches this check.
 const MAX_UPLOAD_BYTES: usize = 2 * 1024 * 1024;
 
-async fn upload_image(req: HttpRequest, mut payload: Multipart) -> HttpResponse {
+async fn upload_image(
+    req: HttpRequest,
+    mut payload: Multipart,
+    storage: web::Data<Arc<dyn StorageStore>>,
+) -> HttpResponse {
     let is_admin = req
         .extensions()
         .get::<Claims>()
@@ -31,7 +35,8 @@ async fn upload_image(req: HttpRequest, mut payload: Multipart) -> HttpResponse 
         let mut field = match item {
             Ok(f) => f,
             Err(e) => {
-                return HttpResponse::BadRequest().json(serde_json::json!({ "error": e.to_string() }));
+                return HttpResponse::BadRequest()
+                    .json(serde_json::json!({ "error": e.to_string() }));
             }
         };
         let field_name = field.name().unwrap_or_default().to_string();
@@ -83,7 +88,11 @@ async fn upload_image(req: HttpRequest, mut payload: Multipart) -> HttpResponse 
     }
 
     let ext = if filename.contains('.') {
-        filename.rsplit('.').next().filter(|e| e.len() <= 5).unwrap_or("bin")
+        filename
+            .rsplit('.')
+            .next()
+            .filter(|e| e.len() <= 5)
+            .unwrap_or("bin")
     } else {
         "bin"
     };
@@ -93,8 +102,10 @@ async fn upload_image(req: HttpRequest, mut payload: Multipart) -> HttpResponse 
         .unwrap_or_default();
     let path = format!("assets/img/{folder}/{ts}.{ext}");
 
-    match supabase::upload(&path, bytes, &content_type).await {
+    match storage.upload(&path, bytes, &content_type).await {
         Ok(url) => HttpResponse::Ok().json(serde_json::json!({ "url": url })),
-        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({ "error": e })),
+        Err(e) => {
+            HttpResponse::InternalServerError().json(serde_json::json!({ "error": e.to_string() }))
+        }
     }
 }

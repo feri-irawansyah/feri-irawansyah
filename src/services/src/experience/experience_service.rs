@@ -11,7 +11,9 @@ pub struct ExperienceServiceImpl {
 
 impl ExperienceServiceImpl {
     pub fn new(deps: ExperienceServiceDeps) -> Self {
-        Self { repo: deps.experience_repo }
+        Self {
+            repo: deps.experience_repo,
+        }
     }
 }
 

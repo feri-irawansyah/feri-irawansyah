@@ -19,7 +19,10 @@ impl MockUserRepo {
     }
 
     fn empty() -> Self {
-        Self { users: Mutex::new(vec![]), next_id: Mutex::new(1) }
+        Self {
+            users: Mutex::new(vec![]),
+            next_id: Mutex::new(1),
+        }
     }
 }
 
@@ -41,22 +44,45 @@ impl UserRepository for MockUserRepo {
     }
 
     async fn find_by_id(&self, id: i32) -> anyhow::Result<Option<UserView>> {
-        Ok(self.users.lock().unwrap().iter().find(|u| u.id == id).cloned())
+        Ok(self
+            .users
+            .lock()
+            .unwrap()
+            .iter()
+            .find(|u| u.id == id)
+            .cloned())
     }
 
     async fn find_by_email(&self, email: &str) -> anyhow::Result<Option<UserView>> {
-        Ok(self.users.lock().unwrap().iter().find(|u| u.email == email).cloned())
+        Ok(self
+            .users
+            .lock()
+            .unwrap()
+            .iter()
+            .find(|u| u.email == email)
+            .cloned())
     }
 
     async fn list(&self, limit: i64, offset: i64) -> anyhow::Result<Vec<UserView>> {
         let users = self.users.lock().unwrap();
-        Ok(users.iter().skip(offset as usize).take(limit as usize).cloned().collect())
+        Ok(users
+            .iter()
+            .skip(offset as usize)
+            .take(limit as usize)
+            .cloned()
+            .collect())
     }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-fn blank_user(id: i32, email: &str, password: &str, fullname: &str, client_category: i32) -> UserView {
+fn blank_user(
+    id: i32,
+    email: &str,
+    password: &str,
+    fullname: &str,
+    client_category: i32,
+) -> UserView {
     use chrono::Utc;
     UserView {
         id,
@@ -83,12 +109,22 @@ fn blank_user(id: i32, email: &str, password: &str, fullname: &str, client_categ
 }
 
 fn make_svc(repo: MockUserRepo) -> UserServiceImpl {
-    UserServiceImpl::new(crate::users::UserServiceDeps { user_repo: Arc::new(repo) })
+    UserServiceImpl::new(crate::users::UserServiceDeps {
+        user_repo: Arc::new(repo),
+    })
 }
 
 fn seed_users(n: usize) -> Vec<UserView> {
     (1..=n)
-        .map(|i| blank_user(i as i32, &format!("user{i}@test.com"), "hash", &format!("User {i}"), 0))
+        .map(|i| {
+            blank_user(
+                i as i32,
+                &format!("user{i}@test.com"),
+                "hash",
+                &format!("User {i}"),
+                0,
+            )
+        })
         .collect()
 }
 
@@ -97,15 +133,24 @@ fn seed_users(n: usize) -> Vec<UserView> {
 #[tokio::test]
 async fn create_hashes_password_not_plaintext() {
     let svc = make_svc(MockUserRepo::empty());
-    let result = svc.create("new@test.com", "plaintext", "New User", 0).await.unwrap();
+    let result = svc
+        .create("new@test.com", "plaintext", "New User", 0)
+        .await
+        .unwrap();
     assert_ne!(result.password, "plaintext", "password must be hashed");
-    assert!(result.password.starts_with("$argon2"), "must be argon2 hash");
+    assert!(
+        result.password.starts_with("$argon2"),
+        "must be argon2 hash"
+    );
 }
 
 #[tokio::test]
 async fn create_stores_correct_metadata() {
     let svc = make_svc(MockUserRepo::empty());
-    let result = svc.create("meta@test.com", "pass", "Full Name", 1).await.unwrap();
+    let result = svc
+        .create("meta@test.com", "pass", "Full Name", 1)
+        .await
+        .unwrap();
     assert_eq!(result.email, "meta@test.com");
     assert_eq!(result.fullname, "Full Name");
     assert_eq!(result.client_category, 1);

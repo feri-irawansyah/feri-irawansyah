@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct HeadingItem {
     pub level: u8,
     pub text: String,
     pub id: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct MarkdownResult {
     pub html: String,
     pub headings: Vec<HeadingItem>,
@@ -44,7 +44,7 @@ pub async fn process_localized(url: &str, locale: &str) -> anyhow::Result<Markdo
 }
 
 #[cfg(feature = "ssr")]
-fn render(md: &str) -> anyhow::Result<MarkdownResult> {
+pub(crate) fn render(md: &str) -> anyhow::Result<MarkdownResult> {
     use pulldown_cmark::{CodeBlockKind, Event, HeadingLevel, Options, Parser, Tag, TagEnd};
     use syntect::highlighting::ThemeSet;
     use syntect::html::highlighted_html_for_string;

@@ -11,7 +11,9 @@ pub struct LaboratoryServiceImpl {
 
 impl LaboratoryServiceImpl {
     pub fn new(deps: LaboratoryServiceDeps) -> Self {
-        Self { repo: deps.laboratory_repo }
+        Self {
+            repo: deps.laboratory_repo,
+        }
     }
 }
 
@@ -27,14 +29,20 @@ impl LaboratoryService for LaboratoryServiceImpl {
         page: i64,
         per_page: i64,
     ) -> Result<(Vec<LaboratoryView>, i64)> {
-        self.repo.find_by_category_page(category, page, per_page).await
+        self.repo
+            .find_by_category_page(category, page, per_page)
+            .await
     }
 
     async fn list_admin(&self) -> Result<Vec<LaboratoryView>> {
         self.repo.find_all_admin().await
     }
 
-    async fn list_admin_page(&self, page: i64, per_page: i64) -> Result<(Vec<LaboratoryView>, i64)> {
+    async fn list_admin_page(
+        &self,
+        page: i64,
+        per_page: i64,
+    ) -> Result<(Vec<LaboratoryView>, i64)> {
         self.repo.find_all_admin_page(page, per_page).await
     }
 

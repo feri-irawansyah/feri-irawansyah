@@ -11,7 +11,9 @@ pub struct CertServiceImpl {
 
 impl CertServiceImpl {
     pub fn new(deps: CertServiceDeps) -> Self {
-        Self { repo: deps.cert_repo }
+        Self {
+            repo: deps.cert_repo,
+        }
     }
 }
 

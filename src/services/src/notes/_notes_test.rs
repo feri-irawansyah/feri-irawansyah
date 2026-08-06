@@ -176,6 +176,8 @@ impl NoteRepository for MockNoteRepo {
 fn make_svc(repo: MockNoteRepo) -> NoteServiceImpl {
     NoteServiceImpl::new(crate::notes::NoteServiceDeps {
         note_repo: Arc::new(repo),
+        cache: Arc::new(connectors::cache::MockCacheClient::new())
+            as Arc<dyn connectors::cache::CacheStore>,
     })
 }
 

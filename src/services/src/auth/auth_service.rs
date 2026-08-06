@@ -151,10 +151,15 @@ impl AuthService for AuthServiceImpl {
         self.repo.delete_session_by_token(refresh_token).await?;
         let new_refresh = Uuid::new_v4().to_string();
         let expired_at = Utc::now() + Duration::days(7);
-        self.repo.create_session(user.id, &new_refresh, ip, expired_at).await?;
+        self.repo
+            .create_session(user.id, &new_refresh, ip, expired_at)
+            .await?;
 
         let access_token = self.create_access_token(user.id, &user.email, user.client_category)?;
-        Ok(LoginResult { access_token, refresh_token: new_refresh })
+        Ok(LoginResult {
+            access_token,
+            refresh_token: new_refresh,
+        })
     }
 
     async fn logout(&self, refresh_token: &str) -> Result<()> {

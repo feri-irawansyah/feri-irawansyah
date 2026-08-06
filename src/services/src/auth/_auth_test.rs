@@ -28,11 +28,23 @@ impl MockAuthRepo {
 #[async_trait::async_trait]
 impl AuthRepository for MockAuthRepo {
     async fn find_user_by_email(&self, email: &str) -> anyhow::Result<Option<UserView>> {
-        Ok(self.users.lock().unwrap().iter().find(|u| u.email == email).cloned())
+        Ok(self
+            .users
+            .lock()
+            .unwrap()
+            .iter()
+            .find(|u| u.email == email)
+            .cloned())
     }
 
     async fn find_user_by_id(&self, id: i32) -> anyhow::Result<Option<UserView>> {
-        Ok(self.users.lock().unwrap().iter().find(|u| u.id == id).cloned())
+        Ok(self
+            .users
+            .lock()
+            .unwrap()
+            .iter()
+            .find(|u| u.id == id)
+            .cloned())
     }
 
     async fn create_session(
@@ -45,13 +57,24 @@ impl AuthRepository for MockAuthRepo {
         let mut id_lock = self.next_id.lock().unwrap();
         let id = *id_lock;
         *id_lock += 1;
-        let s = SessionView { id, user_id, token: token.to_string(), expired_at };
+        let s = SessionView {
+            id,
+            user_id,
+            token: token.to_string(),
+            expired_at,
+        };
         self.sessions.lock().unwrap().push(s.clone());
         Ok(s)
     }
 
     async fn find_session_by_token(&self, token: &str) -> anyhow::Result<Option<SessionView>> {
-        Ok(self.sessions.lock().unwrap().iter().find(|s| s.token == token).cloned())
+        Ok(self
+            .sessions
+            .lock()
+            .unwrap()
+            .iter()
+            .find(|s| s.token == token)
+            .cloned())
     }
 
     async fn delete_session_by_token(&self, token: &str) -> anyhow::Result<()> {
@@ -66,7 +89,10 @@ fn hash_password(password: &str) -> String {
     use argon2::PasswordHasher;
     use argon2::password_hash::{SaltString, rand_core::OsRng};
     let salt = SaltString::generate(&mut OsRng);
-    Argon2::default().hash_password(password.as_bytes(), &salt).unwrap().to_string()
+    Argon2::default()
+        .hash_password(password.as_bytes(), &salt)
+        .unwrap()
+        .to_string()
 }
 
 fn test_user() -> UserView {
@@ -185,7 +211,10 @@ fn validate_token_expired_rejected() {
 #[tokio::test]
 async fn login_success_returns_tokens_with_correct_claims() {
     let svc = make_svc(MockAuthRepo::new(vec![test_user()]));
-    let result = svc.login("admin@test.com", "correct_password", "1.2.3.4").await.unwrap();
+    let result = svc
+        .login("admin@test.com", "correct_password", "1.2.3.4")
+        .await
+        .unwrap();
     assert!(!result.access_token.is_empty());
     assert!(!result.refresh_token.is_empty());
     let claims = svc.validate_access_token(&result.access_token).unwrap();
@@ -196,13 +225,21 @@ async fn login_success_returns_tokens_with_correct_claims() {
 #[tokio::test]
 async fn login_wrong_password_fails() {
     let svc = make_svc(MockAuthRepo::new(vec![test_user()]));
-    assert!(svc.login("admin@test.com", "wrong_password", "1.2.3.4").await.is_err());
+    assert!(
+        svc.login("admin@test.com", "wrong_password", "1.2.3.4")
+            .await
+            .is_err()
+    );
 }
 
 #[tokio::test]
 async fn login_unknown_email_fails() {
     let svc = make_svc(MockAuthRepo::new(vec![]));
-    assert!(svc.login("ghost@test.com", "password", "1.2.3.4").await.is_err());
+    assert!(
+        svc.login("ghost@test.com", "password", "1.2.3.4")
+            .await
+            .is_err()
+    );
 }
 
 #[tokio::test]
@@ -211,7 +248,10 @@ async fn login_locked_after_max_failures() {
     for _ in 0..MAX_LOGIN_ATTEMPTS {
         let _ = svc.login("admin@test.com", "wrong", "1.2.3.4").await;
     }
-    let err = svc.login("admin@test.com", "correct_password", "1.2.3.4").await.unwrap_err();
+    let err = svc
+        .login("admin@test.com", "correct_password", "1.2.3.4")
+        .await
+        .unwrap_err();
     assert!(err.to_string().contains("Terlalu banyak"));
 }
 
@@ -221,7 +261,11 @@ async fn login_success_clears_failure_counter() {
     for _ in 0..(MAX_LOGIN_ATTEMPTS - 1) {
         let _ = svc.login("admin@test.com", "wrong", "1.2.3.4").await;
     }
-    assert!(svc.login("admin@test.com", "correct_password", "1.2.3.4").await.is_ok());
+    assert!(
+        svc.login("admin@test.com", "correct_password", "1.2.3.4")
+            .await
+            .is_ok()
+    );
     assert!(!svc.login_attempts.is_locked("1.2.3.4"));
 }
 

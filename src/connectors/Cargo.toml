@@ -7,13 +7,17 @@ edition = "2024"
 modules = { path = "../modules" }
 
 anyhow = "1"
+async-trait = "0.1"
 tracing = "0.1"
 dotenvy = "0.15"
 tokio = { version = "1", features = ["full"] }
 redis = { version = "1.5.0", features = [
     "connection-manager",
-    "tokio-native-tls-comp",
+    "tokio-rustls-comp",
 ] }
-native-tls = { version = "0.2", features = ["vendored"] }
+reqwest = { version = "0.12", default-features = false, features = [
+    "rustls-tls",
+    "json",
+] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

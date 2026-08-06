@@ -11,7 +11,9 @@ pub struct PortfolioServiceImpl {
 
 impl PortfolioServiceImpl {
     pub fn new(deps: PortfolioServiceDeps) -> Self {
-        Self { repo: deps.portfolio_repo }
+        Self {
+            repo: deps.portfolio_repo,
+        }
     }
 }
 
