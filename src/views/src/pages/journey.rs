@@ -1,4 +1,4 @@
-use crate::components::MarkdownContent;
+use crate::components::{ArticleHeaderSkeleton, ContentLinesSkeleton, MarkdownContent};
 use crate::i18n::*;
 use crate::pages::notes::{fetch_markdown_html, get_note_by_slug};
 use crate::seo::Seo;
@@ -71,7 +71,8 @@ pub fn JourneyPage() -> impl IntoView {
                 </div>
 
                 <Suspense fallback=|| view! {
-                    <div class="text-center text-muted py-8">"Loading..."</div>
+                    <ArticleHeaderSkeleton with_icon=true />
+                    <ContentLinesSkeleton />
                 }>
                     {move || note.get().map(|r| match r {
                         Ok(Some(n)) => {
@@ -88,9 +89,7 @@ pub fn JourneyPage() -> impl IntoView {
                                     </div>
                                     <h1 class="text-[2rem] font-extrabold text-fg">{n.title.clone()}</h1>
                                 </header>
-                                <Suspense fallback=|| view! {
-                                    <div class="text-center text-muted py-8">"Loading..."</div>
-                                }>
+                                <Suspense fallback=|| view! { <ContentLinesSkeleton /> }>
                                     {move || content_html.get().map(|r| match r {
                                         Ok(result) if result.html.trim().is_empty() => view! {
                                             <p class="text-muted italic">"This story hasn't been written yet."</p>

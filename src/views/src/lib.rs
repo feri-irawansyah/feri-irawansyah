@@ -3,6 +3,7 @@
 include!(concat!(env!("OUT_DIR"), "/i18n/mod.rs"));
 
 pub mod app;
+pub mod assets;
 pub mod components;
 #[cfg(feature = "ssr")]
 pub mod features;

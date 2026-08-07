@@ -50,6 +50,30 @@ impl CacheStore for CacheConn {
         }
     }
 
+    async fn incr_with_ttl(&self, key: &str, ttl_secs: u64) -> i64 {
+        let mut conn = self.clone();
+        let count: i64 = match conn.incr(key, 1).await {
+            Ok(c) => c,
+            Err(err) => {
+                tracing::warn!(%err, key, "cache incr failed, failing open");
+                return 0;
+            }
+        };
+        // NX = only set the expiry if this key doesn't already have one, so
+        // a key that's still counting down from its first hit never gets its
+        // window pushed back out by later hits — same fixed window either way.
+        if let Err(err) = redis::cmd("EXPIRE")
+            .arg(key)
+            .arg(ttl_secs)
+            .arg("NX")
+            .query_async::<i64>(&mut conn)
+            .await
+        {
+            tracing::warn!(%err, key, "cache incr_with_ttl: setting expiry failed");
+        }
+        count
+    }
+
     async fn get_stats(&self) -> Result<CacheStats> {
         fn parse(info: &str, field: &str) -> String {
             for line in info.lines() {
@@ -187,6 +211,20 @@ impl CacheStore for MockCacheClient {
             .or_insert(0) += 1;
     }
 
+    async fn incr_with_ttl(&self, key: &str, _ttl_secs: u64) -> i64 {
+        // No real expiry semantics here (same simplification `set_raw`
+        // already makes) — fine for unit tests, which don't wait out a real
+        // window, only assert on the count.
+        let mut values = self.values.lock().unwrap();
+        let count = values
+            .get(key)
+            .and_then(|v| v.parse::<i64>().ok())
+            .unwrap_or(0)
+            + 1;
+        values.insert(key.to_string(), count.to_string());
+        count
+    }
+
     async fn get_stats(&self) -> Result<CacheStats> {
         let total_keys = self.values.lock().unwrap().len() as i64;
         Ok(CacheStats {
@@ -228,3 +266,51 @@ impl CacheStore for MockCacheClient {
         Ok(())
     }
 }
+
+/// [`CacheStore`] used when Valkey couldn't be reached at boot — see
+/// [`super::client::connect_or_degraded`]. Cache is meant to be an
+/// optimization, not a hard dependency: reads always miss (falling straight
+/// through to the DB, same code path as a normal cache miss) and writes are
+/// silent no-ops, so every other service keeps working unmodified. The
+/// admin-facing ops report an error instead of pretending to have numbers,
+/// since there's no real backing store to report on.
+pub struct UnavailableCacheStore;
+
+#[async_trait]
+impl CacheStore for UnavailableCacheStore {
+    async fn get_raw(&self, _key: &str) -> Option<String> {
+        None
+    }
+
+    async fn set_raw(&self, _key: &str, _value: String, _ttl_secs: u64) {}
+
+    async fn get_version(&self, _domain: &str) -> i64 {
+        0
+    }
+
+    async fn bump_version(&self, _domain: &str) {}
+
+    async fn incr_with_ttl(&self, _key: &str, _ttl_secs: u64) -> i64 {
+        0
+    }
+
+    async fn get_stats(&self) -> Result<CacheStats> {
+        Err(anyhow::anyhow!("cache unavailable — valkey unreachable at boot"))
+    }
+
+    async fn get_keys(&self) -> Result<Vec<CacheKeyInfo>> {
+        Err(anyhow::anyhow!("cache unavailable — valkey unreachable at boot"))
+    }
+
+    async fn flush_all(&self) -> Result<()> {
+        Err(anyhow::anyhow!("cache unavailable — valkey unreachable at boot"))
+    }
+
+    async fn delete_key(&self, _key: &str) -> Result<()> {
+        Err(anyhow::anyhow!("cache unavailable — valkey unreachable at boot"))
+    }
+}
+
+#[cfg(test)]
+#[path = "_store_impl_test.rs"]
+mod tests;

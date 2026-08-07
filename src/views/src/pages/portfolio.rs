@@ -1,3 +1,4 @@
+use crate::components::PortfolioCardSkeleton;
 use crate::i18n::*;
 use crate::seo::Seo;
 use leptos::prelude::*;
@@ -45,9 +46,7 @@ pub fn PortfolioPage() -> impl IntoView {
                     </p>
                 </header>
 
-                <Suspense fallback=move || view! {
-                    <div class="text-center text-muted py-8">{t!(i18n, portfolio.loading)}</div>
-                }>
+                <Suspense fallback=|| view! { <PortfolioCardSkeleton count=6 /> }>
                     {move || portfolio.get().map(|r| match r {
                         Ok(items) if items.is_empty() => view! {
                             <div class="text-center text-muted py-12">

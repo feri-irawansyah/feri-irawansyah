@@ -3,7 +3,6 @@ use leptos_meta::{Link, Meta, Title};
 
 pub const SITE_URL: &str = "https://feri-irawansyah.my.id";
 pub const SITE_NAME: &str = "Feri Irawansyah";
-pub const DEFAULT_OG_IMAGE: &str = "https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img/hero-bg.webp";
 
 /// Renders the full per-page SEO tag set: title, description, canonical link,
 /// Open Graph, and Twitter Card tags. Nested inside a route, it overrides the
@@ -19,7 +18,7 @@ pub fn Seo(
     #[prop(optional, into)] image: Option<String>,
     #[prop(optional, into)] og_type: Option<String>,
 ) -> impl IntoView {
-    let image = image.unwrap_or_else(|| DEFAULT_OG_IMAGE.to_string());
+    let image = image.unwrap_or_else(crate::assets::hero_image_url);
     let og_type = og_type.unwrap_or_else(|| "website".to_string());
     let url = format!("{SITE_URL}{path}");
 

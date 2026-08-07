@@ -68,3 +68,7 @@ ssr = [
 
 [build-dependencies]
 leptos_i18n_build = { version = "0.6" }
+
+[dev-dependencies]
+async-trait = "0.1"
+tokio = { version = "1", features = ["macros", "rt"] }

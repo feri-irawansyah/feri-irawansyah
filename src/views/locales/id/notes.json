@@ -10,5 +10,10 @@
     "content_loading": "Lagi muat konten...",
     "content_load_error": "Gagal memuat konten: ",
     "toc_title": "Di halaman ini",
-    "toc_search_placeholder": "Cari heading..."
+    "toc_search_placeholder": "Cari heading...",
+    "search_placeholder": "Cari catatan...",
+    "search_submit": "Cari",
+    "search_clear": "Hapus pencarian",
+    "search_results_for": "Hasil pencarian untuk",
+    "search_empty": "Gak ada catatan buat"
 }

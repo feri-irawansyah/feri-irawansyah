@@ -503,7 +503,13 @@ fn VisitorChart(stats: Vec<DailyStat>) -> impl IntoView {
 /// Formats a seconds duration (GA4's `averageSessionDuration`) as `"1m 24s"`.
 fn format_duration(secs: f64) -> String {
     let total = secs.round().max(0.0) as i64;
-    format!("{}m {}s", total / 60, total % 60)
+    // format!("{}m {}s", total / 60, total % 60)
+    String::from_utf8(
+        format!("{}m {}s", total / 60, total % 60)
+            .as_bytes()
+            .to_vec(),
+    )
+    .unwrap_or_else(|_| "—".to_string())
 }
 
 #[allow(non_snake_case)]

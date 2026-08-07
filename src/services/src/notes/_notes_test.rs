@@ -97,6 +97,40 @@ impl NoteRepository for MockNoteRepo {
         Ok((items, total))
     }
 
+    async fn search(
+        &self,
+        query: &str,
+        page: i64,
+        per_page: i64,
+    ) -> anyhow::Result<(Vec<NoteView>, i64)> {
+        // Good-enough stand-in for `tsv @@ websearch_to_tsquery`: a
+        // case-insensitive substring match over the same columns the real
+        // generated column indexes.
+        let q = query.to_lowercase();
+        let all: Vec<_> = self
+            .notes
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|n| {
+                n.enabled
+                    && (n.title.to_lowercase().contains(&q)
+                        || n.description.to_lowercase().contains(&q)
+                        || n.category.to_lowercase().contains(&q)
+                        || n.hashtag.iter().any(|h| h.to_lowercase().contains(&q)))
+            })
+            .cloned()
+            .collect();
+        let total = all.len() as i64;
+        let offset = ((page - 1).max(0) * per_page) as usize;
+        let items = all
+            .into_iter()
+            .skip(offset)
+            .take(per_page as usize)
+            .collect();
+        Ok((items, total))
+    }
+
     async fn find_all_admin(&self) -> anyhow::Result<Vec<NoteView>> {
         Ok(self.notes.lock().unwrap().clone())
     }
@@ -275,6 +309,51 @@ async fn by_category_filters_correctly() {
     let result = svc.by_category("rust").await.unwrap();
     assert_eq!(result.len(), 2);
     assert!(result.iter().all(|n| n.category == "rust"));
+}
+
+// ── search ───────────────────────────────────────────────────────────────────
+
+#[tokio::test]
+async fn search_matches_title() {
+    let notes = vec![
+        make_note(1, "rust-async", "rust", true),
+        make_note(2, "go-channels", "go", true),
+    ];
+    let svc = make_svc(MockNoteRepo::new(notes));
+    let (result, total) = svc.search("Note 1", 1, 10).await.unwrap();
+    assert_eq!(total, 1);
+    assert_eq!(result[0].slug, "rust-async");
+}
+
+#[tokio::test]
+async fn search_blank_query_returns_empty_without_hitting_repo() {
+    let svc = make_svc(MockNoteRepo::empty());
+    let (result, total) = svc.search("   ", 1, 10).await.unwrap();
+    assert!(result.is_empty());
+    assert_eq!(total, 0);
+}
+
+#[tokio::test]
+async fn search_excludes_disabled_notes() {
+    let notes = vec![
+        make_note(1, "visible", "rust", true),
+        make_note(2, "hidden", "rust", false),
+    ];
+    let svc = make_svc(MockNoteRepo::new(notes));
+    let (result, _) = svc.search("Note", 1, 10).await.unwrap();
+    assert_eq!(result.len(), 1);
+    assert_eq!(result[0].slug, "visible");
+}
+
+#[tokio::test]
+async fn search_paginates_results() {
+    let notes = (1..=5)
+        .map(|i| make_note(i, &format!("note-{i}"), "rust", true))
+        .collect();
+    let svc = make_svc(MockNoteRepo::new(notes));
+    let (page1, total) = svc.search("Note", 1, 2).await.unwrap();
+    assert_eq!(total, 5);
+    assert_eq!(page1.len(), 2);
 }
 
 // ── create ────────────────────────────────────────────────────────────────────

@@ -4,5 +4,10 @@
 //! this tree is a sibling of the modules under test, not a descendant.
 
 mod admin_layout_test;
+mod assets_test;
 mod components_markdown_test;
+mod components_skeleton_test;
+mod markdown_cache_test;
+mod markdown_circuit_test;
 mod markdown_test;
+mod notes_test;

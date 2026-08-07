@@ -1,8 +1,9 @@
-use connectors::cache::CacheConn;
+use connectors::cache::CacheStore;
+use std::sync::Arc;
 
 pub mod cache_service;
 pub use cache_service::CacheServiceImpl;
 
 pub struct CacheServiceDeps {
-    pub conn: CacheConn,
+    pub conn: Arc<dyn CacheStore>,
 }

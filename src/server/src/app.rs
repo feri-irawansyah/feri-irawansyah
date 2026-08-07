@@ -5,7 +5,7 @@
 use std::sync::Arc;
 
 use actix_web::web;
-use connectors::cache::{CacheConn, CacheStore};
+use connectors::cache::CacheStore;
 use connectors::supabase::StorageStore;
 use modules::auth::AuthService;
 use modules::cache::CacheService;
@@ -58,15 +58,14 @@ pub struct AppServices {
 impl AppServices {
     pub fn build(
         pool: PgPool,
-        cache_conn: CacheConn,
+        cache: Arc<dyn CacheStore>,
         storage: Arc<dyn StorageStore>,
         jwt_secret: String,
     ) -> Self {
-        let cache_store: Arc<dyn CacheStore> = Arc::new(cache_conn.clone());
-
         let auth = Arc::new(AuthServiceImpl::new(AuthServiceDeps {
             auth_repo: Arc::new(AuthRepositoryImpl::new(pool.clone())),
             jwt_secret,
+            cache: cache.clone(),
         })) as Arc<dyn AuthService>;
 
         let user = Arc::new(UserServiceImpl::new(UserServiceDeps {
@@ -75,7 +74,7 @@ impl AppServices {
 
         let note = Arc::new(NoteServiceImpl::new(NoteServiceDeps {
             note_repo: Arc::new(NoteRepositoryImpl::new(pool.clone())),
-            cache: cache_store,
+            cache: cache.clone(),
         })) as Arc<dyn NoteService>;
 
         let laboratory = Arc::new(LaboratoryServiceImpl::new(LaboratoryServiceDeps {
@@ -84,7 +83,7 @@ impl AppServices {
 
         let skill = Arc::new(SkillServiceImpl::new(SkillServiceDeps {
             skill_repo: Arc::new(SkillRepositoryImpl::new(pool.clone())),
-            cache: cache_conn.clone(),
+            cache: cache.clone(),
         })) as Arc<dyn SkillService>;
 
         let portfolio = Arc::new(PortfolioServiceImpl::new(PortfolioServiceDeps {
@@ -105,7 +104,7 @@ impl AppServices {
             cert_repo: Arc::new(CertRepositoryImpl::new(pool.clone())),
         })) as Arc<dyn CertService>;
 
-        let cache = Arc::new(CacheServiceImpl::new(CacheServiceDeps { conn: cache_conn }))
+        let cache_svc = Arc::new(CacheServiceImpl::new(CacheServiceDeps { conn: cache }))
             as Arc<dyn CacheService>;
 
         Self {
@@ -118,7 +117,7 @@ impl AppServices {
             experience,
             position,
             cert,
-            cache,
+            cache: cache_svc,
             storage,
         }
     }

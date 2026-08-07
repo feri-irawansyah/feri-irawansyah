@@ -1,3 +1,4 @@
+use crate::components::{CertCardSkeleton, TimelineCardSkeleton};
 use crate::i18n::*;
 use crate::seo::Seo;
 use leptos::prelude::*;
@@ -74,9 +75,7 @@ pub fn ExperiencePage() -> impl IntoView {
                 // ── Work History ────────────────────────────────────────────────
                 <section class="mb-16">
                     <h2 class="text-2xl font-bold mb-8 text-fg">{t!(i18n, experience.work_history)}</h2>
-                    <Suspense fallback=move || view! {
-                        <div class="text-center text-muted py-8">{t!(i18n, experience.loading)}</div>
-                    }>
+                    <Suspense fallback=|| view! { <TimelineCardSkeleton count=3 /> }>
                         {move || positions.get().map(|r| match r {
                             Ok(items) if items.is_empty() => view! {
                                 <p class="text-center text-muted py-12">{t!(i18n, experience.empty_work)}</p>
@@ -207,9 +206,7 @@ pub fn ExperiencePage() -> impl IntoView {
                 // ── Certifications ──────────────────────────────────────────────
                 <section class="mb-16">
                     <h2 class="text-2xl font-bold mb-8 text-fg">{t!(i18n, experience.certifications)}</h2>
-                    <Suspense fallback=move || view! {
-                        <div class="text-center text-muted py-8">{t!(i18n, experience.loading)}</div>
-                    }>
+                    <Suspense fallback=|| view! { <CertCardSkeleton count=6 /> }>
                         {move || certs.get().map(|r| match r {
                             Ok(items) if items.is_empty() => view! {
                                 <p class="text-center text-muted py-12">{t!(i18n, experience.empty_certs)}</p>

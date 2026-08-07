@@ -32,7 +32,7 @@ pub fn AboutPage() -> impl IntoView {
                             <div class="relative w-56 h-56 rounded-3xl overflow-hidden border-2 border-teal-600/40 bg-surface shadow-lg">
                                 <div class="absolute -inset-0.5 rounded-3xl bg-linear-to-br from-teal-500/30 to-transparent pointer-events-none"></div>
                                 <img
-                                    src="https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img/hero-bg.webp"
+                                    src=crate::assets::hero_image_url()
                                     alt="Feri Irawansyah"
                                     class="w-full h-full object-cover object-right scale-110"
                                 />

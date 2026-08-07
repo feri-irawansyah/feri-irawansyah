@@ -5,7 +5,7 @@ use anyhow::{Result, anyhow};
 use async_trait::async_trait;
 use modules::auth::{AuthService, Claims, LoginResult};
 
-use super::AuthMiddleware;
+use super::{AuthMiddleware, needs_auth_check};
 
 // ── Mock AuthService ────────────────────────────────────────────────────────
 // Only `validate_access_token`/`refresh` are ever called by the middleware —
@@ -63,6 +63,67 @@ fn auth_svc() -> web::Data<Arc<dyn AuthService>> {
 }
 
 // ── tests ────────────────────────────────────────────────────────────────────
+// These two are plain sync tests, but the glob-imported `actix_web::test`
+// module shadows the `test` name that bare `#[test]` resolves through, so
+// they need the fully-qualified std attribute to not be mistaken for
+// `#[actix_web::test]` (which demands an async fn).
+
+#[::std::prelude::v1::test]
+fn needs_auth_check_skips_static_and_infra_paths() {
+    assert!(!needs_auth_check("/pkg/feri-irawansyah.wasm"));
+    assert!(!needs_auth_check("/pkg/feri-irawansyah.js"));
+    assert!(!needs_auth_check("/pkg/feri-irawansyah.css"));
+    assert!(!needs_auth_check("/assets/logo.png"));
+    assert!(!needs_auth_check("/public/favicon.ico"));
+    assert!(!needs_auth_check("/uploads/note-cover.png"));
+    assert!(!needs_auth_check("/health"));
+    assert!(!needs_auth_check("/robots.txt"));
+    assert!(!needs_auth_check("/sitemap.xml"));
+    assert!(!needs_auth_check("/rss.xml"));
+}
+
+#[::std::prelude::v1::test]
+fn needs_auth_check_still_checks_pages_and_server_fns() {
+    assert!(needs_auth_check("/"));
+    assert!(needs_auth_check("/admin/cache"));
+    assert!(needs_auth_check("/notes/some-post"));
+    assert!(needs_auth_check("/api/login"));
+}
+
+#[actix_web::test]
+async fn static_asset_path_bypasses_refresh_even_with_valid_refresh_token() {
+    // Regression test for the log-spam/wasted-DB-lookup bug: static asset
+    // requests riding along with a still-valid refresh_token used to run the
+    // full refresh flow (and could race the page request that already
+    // rotated the same single-use token). They should now skip it entirely
+    // — no claims attached, no cookies rotated, mock never consulted.
+    let app = test::init_service(
+        App::new()
+            .wrap(AuthMiddleware)
+            .app_data(auth_svc())
+            .route("/pkg/{filename:.*}", web::get().to(probe)),
+    )
+    .await;
+
+    let req = test::TestRequest::get()
+        .uri("/pkg/feri-irawansyah.wasm")
+        .cookie(actix_web::cookie::Cookie::new("access_token", "expired"))
+        .cookie(actix_web::cookie::Cookie::new(
+            "refresh_token",
+            "valid-refresh",
+        ))
+        .to_request();
+    let res = test::call_service(&app, req).await;
+
+    assert!(
+        !res.headers()
+            .get_all(actix_web::http::header::SET_COOKIE)
+            .any(|_| true)
+    );
+
+    let body: serde_json::Value = test::read_body_json(res).await;
+    assert_eq!(body, serde_json::json!({ "claims": false }));
+}
 
 #[actix_web::test]
 async fn no_cookies_lets_request_through_without_claims() {
@@ -148,7 +209,11 @@ async fn expired_access_token_falls_back_to_refresh_and_rotates_cookies() {
 }
 
 #[actix_web::test]
-async fn invalid_refresh_token_leaves_request_unauthenticated_and_sets_no_cookies() {
+async fn invalid_refresh_token_clears_both_cookies() {
+    // Regression test for the "dead refresh_token spams the log forever"
+    // bug: a refresh_token that fails validation never becomes valid on
+    // retry, so the browser must be told to stop resending it instead of
+    // silently doing nothing (which used to leave `Set-Cookie` empty here).
     let app = test::init_service(
         App::new()
             .wrap(AuthMiddleware)
@@ -164,10 +229,20 @@ async fn invalid_refresh_token_leaves_request_unauthenticated_and_sets_no_cookie
         .to_request();
     let res = test::call_service(&app, req).await;
 
+    let set_cookies: Vec<_> = res
+        .headers()
+        .get_all(actix_web::http::header::SET_COOKIE)
+        .map(|v| v.to_str().unwrap().to_string())
+        .collect();
     assert!(
-        !res.headers()
-            .get_all(actix_web::http::header::SET_COOKIE)
-            .any(|_| true)
+        set_cookies
+            .iter()
+            .any(|c| c.starts_with("access_token=;") && c.contains("Max-Age=0"))
+    );
+    assert!(
+        set_cookies
+            .iter()
+            .any(|c| c.starts_with("refresh_token=;") && c.contains("Max-Age=0"))
     );
 
     let body: serde_json::Value = test::read_body_json(res).await;

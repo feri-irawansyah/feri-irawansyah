@@ -1,3 +1,4 @@
+use crate::components::{ArticleHeaderSkeleton, ContentLinesSkeleton, ListRowSkeleton};
 use crate::i18n::*;
 use crate::markdown::MarkdownResult;
 use crate::seo::Seo;
@@ -23,10 +24,7 @@ fn category_image_url(slug: &str) -> String {
         .find(|(s, _)| *s == slug)
         .map(|(_, f)| *f)
         .unwrap_or("random.webp");
-    format!(
-        "https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img/{}",
-        file
-    )
+    crate::assets::asset_url(file)
 }
 
 fn category_title(i18n: I18nContext<Locale>, slug: String) -> impl IntoView {
@@ -73,12 +71,30 @@ pub async fn get_lab_by_slug(slug: String) -> Result<Option<LaboratoryView>, Ser
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
 
+#[cfg(feature = "ssr")]
+async fn cache_svc() -> Result<std::sync::Arc<dyn modules::cache::CacheService>, ServerFnError> {
+    use actix_web::web::Data;
+    use leptos_actix::extract;
+    use std::sync::Arc;
+    let svc = extract::<Data<Arc<dyn modules::cache::CacheService>>>()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    Ok(Arc::clone(&svc))
+}
+
+/// See `notes::CONTENT_CACHE_TTL_SECS` / `process_localized_cached` doc —
+/// same TTL-only rationale (content lives on GitHub, not Postgres).
+#[cfg(feature = "ssr")]
+const CONTENT_CACHE_TTL_SECS: u64 = 3600;
+
 #[server]
 pub async fn fetch_lab_markdown_html(
     url: String,
     locale: String,
 ) -> Result<MarkdownResult, ServerFnError> {
-    crate::markdown::process_localized(&url, &locale)
+    let cache = cache_svc().await?;
+    let key = format!("lab-content:v1:{locale}:{url}");
+    crate::markdown::process_localized_cached(cache.as_ref(), &key, &url, &locale, CONTENT_CACHE_TTL_SECS)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -179,9 +195,7 @@ pub fn LaboratoryCategoryPage() -> impl IntoView {
                     <h1 class="text-[2.25rem] font-extrabold mb-2">{move || category_title(i18n, category())}</h1>
                 </header>
 
-                <Suspense fallback=move || view! {
-                    <div class="text-center text-muted py-8">{t!(i18n, laboratory.loading)}</div>
-                }>
+                <Suspense fallback=|| view! { <ListRowSkeleton count=4 /> }>
                     {move || items.get().map(|r| match r {
                         Ok((rows, _)) if rows.is_empty() => view! {
                             <div class="text-center text-muted py-12">
@@ -290,8 +304,9 @@ pub fn LaboratoryDetailPage() -> impl IntoView {
                     </a>
                 </div>
 
-                <Suspense fallback=move || view! {
-                    <div class="text-center text-muted py-8">{t!(i18n, laboratory.loading)}</div>
+                <Suspense fallback=|| view! {
+                    <ArticleHeaderSkeleton with_icon=false />
+                    <ContentLinesSkeleton />
                 }>
                     {move || lab.get().map(|r| match r {
                         Ok(Some(n)) => view! {
@@ -303,9 +318,7 @@ pub fn LaboratoryDetailPage() -> impl IntoView {
                             <header class="pb-8 border-b border-line mb-8">
                                 <h1 class="text-[2rem] font-extrabold text-fg">{n.title.clone()}</h1>
                             </header>
-                            <Suspense fallback=move || view! {
-                                <div class="text-center text-muted py-8">{t!(i18n, laboratory.content_loading)}</div>
-                            }>
+                            <Suspense fallback=|| view! { <ContentLinesSkeleton /> }>
                                 {move || content_html.get().map(|r| match r {
                                     Ok(result) => view! { <crate::components::MarkdownContent html=result.html /> }.into_any(),
                                     Err(e) => view! {

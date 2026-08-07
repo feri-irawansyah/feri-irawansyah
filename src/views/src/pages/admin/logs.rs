@@ -20,9 +20,9 @@ pub async fn admin_read_logs(
     };
 
     let path = format!("{log_dir}/app.{target_date}.log");
-    let content = fs::read_to_string(&path).await.map_err(|e| {
-        ServerFnError::new(format!("Log file tidak ditemukan: {path} ({e})"))
-    })?;
+    let content = fs::read_to_string(&path)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Log file tidak ditemukan: {path} ({e})")))?;
 
     let lines: Vec<String> = content
         .lines()
@@ -35,7 +35,7 @@ pub async fn admin_read_logs(
         .map(|l| l.to_string())
         .collect();
 
-    let tail = tail.max(1).min(5000);
+    let tail = tail.clamp(1, 5000);
     let start = lines.len().saturating_sub(tail);
     Ok(lines[start..].to_vec())
 }
@@ -53,10 +53,10 @@ pub async fn admin_list_log_dates() -> Result<Vec<String>, ServerFnError> {
         while let Ok(Some(entry)) = entries.next_entry().await {
             let name = entry.file_name().to_string_lossy().to_string();
             // tracing-appender creates files named "app.YYYY-MM-DD.log"
-            if let Some(rest) = name.strip_prefix("app.") {
-                if let Some(date) = rest.strip_suffix(".log") {
-                    dates.push(date.to_string());
-                }
+            if let Some(rest) = name.strip_prefix("app.")
+                && let Some(date) = rest.strip_suffix(".log")
+            {
+                dates.push(date.to_string());
             }
         }
     }

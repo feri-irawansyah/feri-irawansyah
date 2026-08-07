@@ -1,6 +1,8 @@
 use super::*;
 use chrono::Utc;
+use connectors::cache::MockCacheClient;
 use modules::auth::{AuthRepository, SessionView, UserView};
+use std::sync::Mutex;
 
 // ── Mock repository ───────────────────────────────────────────────────────────
 
@@ -109,6 +111,7 @@ fn make_svc(repo: MockAuthRepo) -> AuthServiceImpl {
     AuthServiceImpl::new(crate::auth::AuthServiceDeps {
         auth_repo: Arc::new(repo),
         jwt_secret: "test_secret_key_32chars_padding!!".to_string(),
+        cache: Arc::new(MockCacheClient::new()),
     })
 }
 
@@ -121,41 +124,41 @@ fn future_session(token: &str) -> SessionView {
     }
 }
 
-// ── LoginAttempts ─────────────────────────────────────────────────────────────
+// ── login rate limiter (cache-backed) ───────────────────────────────────────
 
-#[test]
-fn rate_limiter_not_locked_initially() {
-    let a = LoginAttempts::default();
-    assert!(!a.is_locked("1.2.3.4"));
+#[tokio::test]
+async fn rate_limiter_not_locked_initially() {
+    let svc = make_svc(MockAuthRepo::new(vec![]));
+    assert!(!svc.is_locked("1.2.3.4").await);
 }
 
-#[test]
-fn rate_limiter_locks_after_max_failures() {
-    let a = LoginAttempts::default();
+#[tokio::test]
+async fn rate_limiter_locks_after_max_failures() {
+    let svc = make_svc(MockAuthRepo::new(vec![]));
     for _ in 0..MAX_LOGIN_ATTEMPTS {
-        a.record_failure("1.2.3.4");
+        svc.record_login_failure("1.2.3.4").await;
     }
-    assert!(a.is_locked("1.2.3.4"));
+    assert!(svc.is_locked("1.2.3.4").await);
 }
 
-#[test]
-fn rate_limiter_clear_unlocks() {
-    let a = LoginAttempts::default();
+#[tokio::test]
+async fn rate_limiter_clear_unlocks() {
+    let svc = make_svc(MockAuthRepo::new(vec![]));
     for _ in 0..MAX_LOGIN_ATTEMPTS {
-        a.record_failure("1.2.3.4");
+        svc.record_login_failure("1.2.3.4").await;
     }
-    a.clear("1.2.3.4");
-    assert!(!a.is_locked("1.2.3.4"));
+    svc.clear_login_failures("1.2.3.4").await;
+    assert!(!svc.is_locked("1.2.3.4").await);
 }
 
-#[test]
-fn rate_limiter_ips_are_independent() {
-    let a = LoginAttempts::default();
+#[tokio::test]
+async fn rate_limiter_ips_are_independent() {
+    let svc = make_svc(MockAuthRepo::new(vec![]));
     for _ in 0..MAX_LOGIN_ATTEMPTS {
-        a.record_failure("1.2.3.4");
+        svc.record_login_failure("1.2.3.4").await;
     }
-    assert!(a.is_locked("1.2.3.4"));
-    assert!(!a.is_locked("9.9.9.9"));
+    assert!(svc.is_locked("1.2.3.4").await);
+    assert!(!svc.is_locked("9.9.9.9").await);
 }
 
 // ── validate_access_token ─────────────────────────────────────────────────────
@@ -177,6 +180,7 @@ fn validate_token_wrong_secret_rejected() {
     let svc2 = AuthServiceImpl::new(crate::auth::AuthServiceDeps {
         auth_repo: Arc::new(MockAuthRepo::new(vec![])),
         jwt_secret: "wrong_secret_key_32chars_padding!".to_string(),
+        cache: Arc::new(MockCacheClient::new()),
     });
     assert!(svc2.validate_access_token(&token).is_err());
 }
@@ -266,7 +270,7 @@ async fn login_success_clears_failure_counter() {
             .await
             .is_ok()
     );
-    assert!(!svc.login_attempts.is_locked("1.2.3.4"));
+    assert!(!svc.is_locked("1.2.3.4").await);
 }
 
 // ── refresh ───────────────────────────────────────────────────────────────────

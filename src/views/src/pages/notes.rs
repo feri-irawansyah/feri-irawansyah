@@ -1,10 +1,12 @@
-use crate::components::MarkdownContent;
+use crate::assets::note_cover_url;
+use crate::components::{ContentLinesSkeleton, MarkdownContent, NoteCardSkeleton, NoteHeroSkeleton};
 use crate::i18n::*;
 use crate::markdown::{HeadingItem, MarkdownResult};
-use crate::seo::{DEFAULT_OG_IMAGE, SITE_URL, Seo};
+use crate::seo::{SITE_URL, Seo};
 use leptos::prelude::*;
 use leptos_meta::Meta;
-use leptos_router::hooks::use_params_map;
+use leptos_router::NavigateOptions;
+use leptos_router::hooks::{use_navigate, use_params_map, use_query_map};
 use modules::notes::NoteView;
 
 #[cfg(feature = "ssr")]
@@ -18,12 +20,30 @@ async fn note_svc() -> Result<std::sync::Arc<dyn modules::notes::NoteService>, S
     Ok(Arc::clone(&svc))
 }
 
+#[cfg(feature = "ssr")]
+async fn cache_svc() -> Result<std::sync::Arc<dyn modules::cache::CacheService>, ServerFnError> {
+    use actix_web::web::Data;
+    use leptos_actix::extract;
+    use std::sync::Arc;
+    let svc = extract::<Data<Arc<dyn modules::cache::CacheService>>>()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    Ok(Arc::clone(&svc))
+}
+
+/// TTL for cached rendered content (`views::markdown::process_localized_cached`)
+/// — see that fn's doc for why this is TTL-only, no active invalidation.
+#[cfg(feature = "ssr")]
+const CONTENT_CACHE_TTL_SECS: u64 = 3600;
+
 #[server]
 pub async fn fetch_markdown_html(
     url: String,
     locale: String,
 ) -> Result<MarkdownResult, ServerFnError> {
-    crate::markdown::process_localized(&url, &locale)
+    let cache = cache_svc().await?;
+    let key = format!("notes-content:v1:{locale}:{url}");
+    crate::markdown::process_localized_cached(cache.as_ref(), &key, &url, &locale, CONTENT_CACHE_TTL_SECS)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -55,14 +75,51 @@ pub async fn get_notes_by_category(category: String) -> Result<Vec<NoteView>, Se
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
 
+#[server]
+pub async fn search_notes(query: String, page: i64) -> Result<(Vec<NoteView>, i64), ServerFnError> {
+    note_svc()
+        .await?
+        .search(&query, page, 8)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))
+}
+
 // ── Pages ────────────────────────────────────────────────────────────────────
 
 #[allow(non_snake_case)]
 #[component]
 pub fn NotesPage() -> impl IntoView {
     let i18n = use_i18n();
+    let query_map = use_query_map();
+    let navigate = use_navigate();
+
+    let initial_q = query_map.with_untracked(|q| q.get("q").unwrap_or_default());
+    let search_input = RwSignal::new(initial_q.clone());
+    let active_query = RwSignal::new(initial_q);
     let current_page = RwSignal::new(1i64);
-    let notes = Resource::new(move || current_page.get(), get_notes_page);
+
+    // Browser back/forward (or a plain `/notes?q=...` link) changes the URL
+    // without going through `on_search_submit` below — keep the signals that
+    // actually drive the resource in sync with it.
+    Effect::new(move |_| {
+        let q = query_map.with(|q| q.get("q").unwrap_or_default());
+        if q != active_query.get_untracked() {
+            search_input.set(q.clone());
+            active_query.set(q);
+            current_page.set(1);
+        }
+    });
+
+    let notes = Resource::new(
+        move || (current_page.get(), active_query.get()),
+        |(page, q)| async move {
+            if q.trim().is_empty() {
+                get_notes_page(page).await
+            } else {
+                search_notes(q, page).await
+            }
+        },
+    );
 
     let total_pages = Memo::new(move |_| {
         notes
@@ -71,6 +128,39 @@ pub fn NotesPage() -> impl IntoView {
             .map(|(_, total)| ((total + 7) / 8).max(1))
             .unwrap_or(1)
     });
+
+    let navigate_submit = navigate.clone();
+    let on_search_submit = move |ev: leptos::ev::SubmitEvent| {
+        ev.prevent_default();
+        let q = search_input.get();
+        active_query.set(q.clone());
+        current_page.set(1);
+        let target = if q.trim().is_empty() {
+            "/notes".to_string()
+        } else {
+            format!("/notes?q={}", encode_query_param(q.trim()))
+        };
+        navigate_submit(
+            &target,
+            NavigateOptions {
+                replace: true,
+                ..Default::default()
+            },
+        );
+    };
+
+    let on_clear_search = move |_: leptos::ev::MouseEvent| {
+        search_input.set(String::new());
+        active_query.set(String::new());
+        current_page.set(1);
+        navigate(
+            "/notes",
+            NavigateOptions {
+                replace: true,
+                ..Default::default()
+            },
+        );
+    };
 
     // Defined outside view! to avoid Leptos macro misparse of `>` in attribute expressions
     let on_prev = move |_: leptos::ev::MouseEvent| {
@@ -111,12 +201,15 @@ pub fn NotesPage() -> impl IntoView {
         }
     };
 
+    let search_placeholder = move || t_string!(i18n, notes.search_placeholder);
+    let search_clear_label = move || t_string!(i18n, notes.search_clear);
+
     view! {
         <Seo
             title="Notes — Feri Irawansyah"
             description="Articles, learnings, and thoughts on software development by Feri Irawansyah."
             path="/notes"
-            image=DEFAULT_OG_IMAGE
+            image=crate::assets::hero_image_url()
         />
         <div class="py-4">
             <div class="max-w-5xl mx-auto px-6">
@@ -166,10 +259,52 @@ pub fn NotesPage() -> impl IntoView {
                     </Suspense>
                 </header>
 
-                <Suspense fallback=move || view! {
-                    <div class="text-center text-muted py-8">{t!(i18n, notes.loading)}</div>
-                }>
+                <form on:submit=on_search_submit class="flex items-center gap-2 mb-8">
+                    <div class="relative flex-1">
+                        <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm pointer-events-none"></i>
+                        <input
+                            type="text"
+                            aria-label=search_placeholder
+                            placeholder=search_placeholder
+                            class="w-full text-sm bg-surface border border-line rounded-xl pl-11 pr-10 py-3 text-fg placeholder:text-muted focus:outline-none focus:border-teal-500 transition-colors"
+                            prop:value=search_input
+                            on:input=move |e| search_input.set(event_target_value(&e))
+                        />
+                        {move || {
+                            let on_clear_search = on_clear_search.clone();
+                            (!search_input.get().is_empty()).then(move || view! {
+                                <button
+                                    type="button"
+                                    aria-label=search_clear_label
+                                    on:click=on_clear_search
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-fg transition-colors cursor-pointer">
+                                    <i class="bi bi-x-lg text-sm"></i>
+                                </button>
+                            })
+                        }}
+                    </div>
+                    <button
+                        type="submit"
+                        class="shrink-0 flex items-center gap-1.5 px-4 py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-sm font-semibold transition-colors cursor-pointer whitespace-nowrap">
+                        <i class="bi bi-search text-xs"></i>
+                        {t!(i18n, notes.search_submit)}
+                    </button>
+                </form>
+
+                {move || (!active_query.get().is_empty()).then(|| view! {
+                    <Meta name="robots" content="noindex, follow"/>
+                    <p class="text-sm text-muted -mt-4 mb-6">
+                        {t!(i18n, notes.search_results_for)} " “" {active_query.get()} "”"
+                    </p>
+                })}
+
+                <Suspense fallback=|| view! { <NoteCardSkeleton count=3 /> }>
                     {move || notes.get().map(|r| match r {
+                        Ok((items, _)) if items.is_empty() && !active_query.get().is_empty() => view! {
+                            <div class="text-center text-muted py-12">
+                                <p>{t!(i18n, notes.search_empty)} " “" {active_query.get()} "”"</p>
+                            </div>
+                        }.into_any(),
                         Ok((items, _)) if items.is_empty() => view! {
                             <div class="text-center text-muted py-12">
                                 <p>{t!(i18n, notes.empty)}</p>
@@ -196,10 +331,7 @@ pub fn NotesPage() -> impl IntoView {
 #[component]
 fn NoteCard(note: NoteView) -> impl IntoView {
     let href = format!("/notes/{}", note.slug);
-    let img_url = format!(
-        "https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img/notes/{}.webp",
-        note.slug
-    );
+    let img_url = note_cover_url(&note.slug);
     view! {
         <a href=href
             class="group flex flex-col sm:flex-row gap-4 sm:gap-5 items-start bg-surface border border-line rounded-2xl p-4 sm:p-5 hover:border-teal-500/50 transition-colors no-underline">
@@ -212,12 +344,13 @@ fn NoteCard(note: NoteView) -> impl IntoView {
                     on:error=move |_e: leptos::ev::ErrorEvent| {
                         #[cfg(target_arch = "wasm32")]
                         {
+                            use crate::assets::note_default_cover_url;
                             use leptos::web_sys;
                             use wasm_bindgen::JsCast;
                             if let Some(img) = _e.target()
                                 .and_then(|t| t.dyn_into::<web_sys::HtmlImageElement>().ok())
                             {
-                                img.set_src("https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img/notes/default.webp");
+                                img.set_src(&note_default_cover_url());
                             }
                         }
                     }
@@ -301,10 +434,7 @@ pub fn NotePage() -> impl IntoView {
     // <Title>/<Meta> tags to land in the head instead of streaming in too late.
     let note_seo = move || match note.get() {
         Some(Ok(Some(n))) => {
-            let img_url = format!(
-                "https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img/notes/{}.webp",
-                n.slug
-            );
+            let img_url = note_cover_url(&n.slug);
             let note_path = format!("/notes/{}", n.slug);
             let date_iso = n.last_update.to_rfc3339();
             let article_ld = format!(
@@ -360,8 +490,11 @@ pub fn NotePage() -> impl IntoView {
                 </div>
             </div>
             <div class="max-w-6xl mx-auto px-6">
-                <Suspense fallback=move || view! {
-                    <div class="text-center text-muted py-8">{t!(i18n, notes.detail_loading)}</div>
+                <Suspense fallback=|| view! {
+                    <div class="pb-12">
+                        <NoteHeroSkeleton />
+                        <ContentLinesSkeleton />
+                    </div>
                 }>
                     {move || note.get().map(|r| match r {
                         Ok(Some(n)) => view! {
@@ -403,10 +536,7 @@ fn NoteDetail(
     toc_search: RwSignal<String>,
 ) -> impl IntoView {
     let i18n = use_i18n();
-    let img_url = format!(
-        "https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img/notes/{}.webp",
-        note.slug
-    );
+    let img_url = note_cover_url(&note.slug);
     let reading_time = move || {
         content_html
             .get()
@@ -425,12 +555,13 @@ fn NoteDetail(
                         on:error=move |_e: leptos::ev::ErrorEvent| {
                             #[cfg(target_arch = "wasm32")]
                             {
+                                use crate::assets::note_default_cover_url;
                                 use leptos::web_sys;
                                 use wasm_bindgen::JsCast;
                                 if let Some(img) = _e.target()
                                     .and_then(|t| t.dyn_into::<web_sys::HtmlImageElement>().ok())
                                 {
-                                    img.set_src("https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img/notes/default.webp");
+                                    img.set_src(&note_default_cover_url());
                                 }
                             }
                         }
@@ -463,9 +594,7 @@ fn NoteDetail(
                     </div>
                 </header>
                 <div class="mb-8 border-b border-line"></div>
-                <Suspense fallback=move || view! {
-                    <div class="text-muted text-sm py-4">{t!(i18n, notes.content_loading)}</div>
-                }>
+                <Suspense fallback=|| view! { <ContentLinesSkeleton /> }>
                     {move || content_html.get().map(|r| match r {
                         Ok(result) => view! { <MarkdownContent html=result.html /> }.into_any(),
                         Err(e) => view! {
@@ -542,13 +671,35 @@ fn estimate_reading_time(html: &str) -> u32 {
     let text: String = html
         .chars()
         .filter(|&c| {
-            if c == '<' { in_tag = true; false }
-            else if c == '>' { in_tag = false; false }
-            else { !in_tag }
+            if c == '<' {
+                in_tag = true;
+                false
+            } else if c == '>' {
+                in_tag = false;
+                false
+            } else {
+                !in_tag
+            }
         })
         .collect();
     let words = text.split_whitespace().count();
     ((words as f32 / 200.0).ceil() as u32).max(1)
+}
+
+/// Minimal RFC 3986 percent-encoder for a URL query value — enough to keep
+/// `?q=...` shareable/refreshable without pulling in a dedicated crate.
+/// Operates byte-by-byte, which stays correct for multi-byte UTF-8 too.
+pub(crate) fn encode_query_param(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for b in s.as_bytes() {
+        match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~' => {
+                out.push(*b as char);
+            }
+            _ => out.push_str(&format!("%{b:02X}")),
+        }
+    }
+    out
 }
 
 fn json_escape(s: &str) -> String {

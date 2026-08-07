@@ -1,12 +1,13 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use connectors::cache::{CacheConn, CacheStore};
+use connectors::cache::CacheStore;
 use modules::cache::{CacheKeyInfo, CacheService, CacheStats};
+use std::sync::Arc;
 
 use crate::cache::CacheServiceDeps;
 
 pub struct CacheServiceImpl {
-    conn: CacheConn,
+    conn: Arc<dyn CacheStore>,
 }
 
 impl CacheServiceImpl {
@@ -31,5 +32,13 @@ impl CacheService for CacheServiceImpl {
 
     async fn delete_key(&self, key: String) -> Result<()> {
         self.conn.delete_key(&key).await
+    }
+
+    async fn get_raw(&self, key: &str) -> Option<String> {
+        self.conn.get_raw(key).await
+    }
+
+    async fn set_raw(&self, key: &str, value: String, ttl_secs: u64) {
+        self.conn.set_raw(key, value, ttl_secs).await;
     }
 }

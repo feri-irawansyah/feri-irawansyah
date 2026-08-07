@@ -145,7 +145,7 @@ pub fn HomePage() -> impl IntoView {
                             // Puddle-shaped image
                             <div class="w-70 h-52 sm:w-90 sm:h-68 md:w-115 md:h-85 puddle-frame overflow-hidden border-4 border-teal-600/30 bg-surface">
                                 <img
-                                    src="https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img/hero-bg.webp"
+                                    src=crate::assets::hero_image_url()
                                     alt="Feri Irawansyah"
                                     class="w-full h-full object-cover object-right scale-125"
                                 />
@@ -298,10 +298,7 @@ pub fn HomePage() -> impl IntoView {
                                                 class=("notes-anim-down-b", move || !go_next.get() && nav_tick.get() % 2 != 0)
                                             >
                                                 {visible.into_iter().map(|(_, n)| {
-                                                    let img_url = format!(
-                                                        "https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img/notes/{}.webp",
-                                                        n.slug
-                                                    );
+                                                    let img_url = crate::assets::note_cover_url(&n.slug);
                                                     view! {
                                                         <a href=format!("/notes/{}", n.slug)
                                                             class="group flex flex-col sm:flex-row gap-4 sm:gap-5 items-start bg-surface border border-line rounded-2xl p-4 sm:p-5 hover:border-teal-500/50 transition-colors no-underline">
@@ -319,7 +316,7 @@ pub fn HomePage() -> impl IntoView {
                                                                             if let Some(img) = _e.target()
                                                                                 .and_then(|t| t.dyn_into::<web_sys::HtmlImageElement>().ok())
                                                                             {
-                                                                                img.set_src("https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img/notes/default.webp");
+                                                                                img.set_src(&crate::assets::note_default_cover_url());
                                                                             }
                                                                         }
                                                                     }

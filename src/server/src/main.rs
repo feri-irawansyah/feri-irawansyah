@@ -71,10 +71,10 @@ async fn main() -> std::io::Result<()> {
     schemas::run(&pool).await.expect("migration failed");
     tracing::info!("Database connected and migrations applied");
 
-    let cache = connectors::cache::create_cache_client()
-        .await
-        .expect("valkey connection failed");
-    tracing::info!("Valkey cache connected");
+    // Never panics — a cache is an optimization, not a hard boot dependency.
+    // Logs `error!` and runs degraded (every read falls through to the DB)
+    // if Valkey isn't reachable; see `connect_or_degraded`.
+    let cache = connectors::cache::connect_or_degraded().await;
 
     let storage: Arc<dyn connectors::supabase::StorageStore> = Arc::new(
         connectors::supabase::SupabaseClient::from_env().expect("supabase config invalid"),

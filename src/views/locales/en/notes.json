@@ -10,5 +10,10 @@
     "content_loading": "Loading content...",
     "content_load_error": "Failed to load content: ",
     "toc_title": "On this page",
-    "toc_search_placeholder": "Search headings..."
+    "toc_search_placeholder": "Search headings...",
+    "search_placeholder": "Search notes...",
+    "search_submit": "Search",
+    "search_clear": "Clear search",
+    "search_results_for": "Search results for",
+    "search_empty": "No notes found for"
 }

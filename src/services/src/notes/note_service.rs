@@ -65,7 +65,7 @@ impl NoteService for NoteServiceImpl {
 
     async fn get_by_slug(&self, slug: &str) -> Result<Option<NoteView>> {
         let version = cache::cache_version(self.cache.as_ref(), DOMAIN).await;
-        let key = cache::versioned_key(DOMAIN, version, &["slug", slug]);
+        let key = cache::versioned_key(DOMAIN, version, &["slug", &cache::hash_part(slug)]);
         if let Some(cached) = cache::get_cached::<Option<NoteView>>(self.cache.as_ref(), &key).await
         {
             return Ok(cached);
@@ -84,6 +84,33 @@ impl NoteService for NoteServiceImpl {
         let rows = self.repo.find_by_category(category).await?;
         cache::set_cached(self.cache.as_ref(), &key, &rows).await;
         Ok(rows)
+    }
+
+    async fn search(&self, query: &str, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)> {
+        let query = query.trim();
+        if query.is_empty() {
+            return Ok((Vec::new(), 0));
+        }
+
+        let version = cache::cache_version(self.cache.as_ref(), DOMAIN).await;
+        let key = cache::versioned_key(
+            DOMAIN,
+            version,
+            &[
+                "search",
+                &cache::hash_part(query),
+                &page.to_string(),
+                &per_page.to_string(),
+            ],
+        );
+        if let Some(cached) =
+            cache::get_cached::<(Vec<NoteView>, i64)>(self.cache.as_ref(), &key).await
+        {
+            return Ok(cached);
+        }
+        let result = self.repo.search(query, page, per_page).await?;
+        cache::set_cached(self.cache.as_ref(), &key, &result).await;
+        Ok(result)
     }
 
     async fn list_admin(&self) -> Result<Vec<NoteView>> {

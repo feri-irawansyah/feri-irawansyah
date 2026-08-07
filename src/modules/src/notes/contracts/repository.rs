@@ -10,6 +10,11 @@ pub trait NoteRepository: Send + Sync {
     async fn find_by_slug(&self, slug: &str) -> Result<Option<NoteView>>;
     async fn find_by_category(&self, category: &str) -> Result<Vec<NoteView>>;
     async fn find_paginated(&self, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)>;
+    /// Full-text search over `title`/`description`/`hashtag`/`category` (the
+    /// `tsv` generated column). `content` is deliberately not indexed — it's
+    /// a pointer to an externally-hosted markdown file, not the article
+    /// text. Only enabled notes are matched, ranked by relevance.
+    async fn search(&self, query: &str, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)>;
     /// Every note regardless of category/enabled — for the admin listing.
     /// Deliberately separate from `find_all`, which filters for the public feed.
     async fn find_all_admin(&self) -> Result<Vec<NoteView>>;

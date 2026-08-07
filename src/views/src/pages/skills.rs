@@ -1,3 +1,4 @@
+use crate::components::SkillCardSkeleton;
 use crate::i18n::*;
 use crate::seo::Seo;
 use leptos::prelude::*;
@@ -89,9 +90,7 @@ pub fn SkillsPage() -> impl IntoView {
 
                     // ── Right: cards ─────────────────────────────────────
                     <div>
-                        <Suspense fallback=move || view! {
-                            <div class="text-center text-muted py-16">{t!(i18n, skills.loading)}</div>
-                        }>
+                        <Suspense fallback=|| view! { <SkillCardSkeleton count=9 /> }>
                             {move || skills.get().map(|r| match r {
                                 Ok(items) if items.is_empty() => view! {
                                     <p class="text-center text-muted py-16">{t!(i18n, skills.empty)}</p>

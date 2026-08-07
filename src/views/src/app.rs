@@ -381,7 +381,10 @@ pub fn App() -> impl IntoView {
         <Stylesheet id="leptos" href="/pkg/feri-irawansyah.css"/>
         <Title text="Feri Irawansyah — Principal Engineer"/>
         <Script type_="application/ld+json">
-            r#"{"@context":"https://schema.org","@type":"Person","name":"Feri Irawansyah","url":"https://feri-irawansyah.my.id","jobTitle":"Principal Engineer","image":"https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img/hero-bg.webp","email":"mailto:feryirawansyah09@gmail.com","sameAs":["https://github.com/feri-irawansyah","https://linkedin.com/in/feri-irawansyah"]}"#
+            {format!(
+                r#"{{"@context":"https://schema.org","@type":"Person","name":"Feri Irawansyah","url":"https://feri-irawansyah.my.id","jobTitle":"Principal Engineer","image":"{}","email":"mailto:feryirawansyah09@gmail.com","sameAs":["https://github.com/feri-irawansyah","https://linkedin.com/in/feri-irawansyah"]}}"#,
+                crate::assets::hero_image_url(),
+            )}
         </Script>
 
         <I18nContextProvider>

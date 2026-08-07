@@ -5,5 +5,5 @@ pub use skill_service::SkillServiceImpl;
 
 pub struct SkillServiceDeps {
     pub skill_repo: Arc<dyn modules::skills::SkillRepository>,
-    pub cache: connectors::cache::CacheConn,
+    pub cache: Arc<dyn connectors::cache::CacheStore>,
 }

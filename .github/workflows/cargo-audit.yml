@@ -1,0 +1,28 @@
+name: cargo-audit
+
+# Deliberately narrow scope: this only reads Cargo.lock against the RustSec
+# advisory database, it never builds the project (no Leptos compile here —
+# that's the CI cost this repo is intentionally avoiding, see
+# old/RATTING-TASK.md's CI/CD decision note). Runs in seconds.
+#
+# Push-only, path-filtered to Cargo.toml/Cargo.lock changes — solo-dev repo,
+# no PRs to gate and no need for a standing weekly schedule; `cargo audit`
+# run manually covers catching newly-published advisories in between pushes.
+on:
+  push:
+    paths:
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+      - ".github/workflows/cargo-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

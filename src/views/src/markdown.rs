@@ -13,16 +13,164 @@ pub struct MarkdownResult {
     pub headings: Vec<HeadingItem>,
 }
 
+/// Shared client for fetching note/journey/laboratory markdown source from
+/// GitHub — a bare `reqwest::get` has no timeout at all, so a slow/hanging
+/// GitHub response used to block the SSR response indefinitely. Built once
+/// and reused (`reqwest::Client` is internally an `Arc`, cheap to clone —
+/// but here we don't even need to, `OnceLock` hands out `&'static` refs).
+#[cfg(feature = "ssr")]
+fn http_client() -> &'static reqwest::Client {
+    static CLIENT: std::sync::OnceLock<reqwest::Client> = std::sync::OnceLock::new();
+    CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(8))
+            .build()
+            .expect("failed to build markdown http client")
+    })
+}
+
+/// Process-wide circuit breaker for GitHub markdown fetches — GitHub's
+/// availability isn't a per-request concern, so one shared instance for the
+/// whole server makes sense. Two effective states, tracked with two atomics
+/// instead of a state enum + lock (no request needs to block on another):
+/// - **Closed** (`open_until == 0`, or its time has passed): requests go
+///   through normally; consecutive transient failures count up.
+/// - **Open**: `open_until` is a future timestamp — every request fails
+///   fast, no network call at all, until that time passes. The first
+///   request after it passes is let through as an implicit probe (this
+///   *isn't* a strict single-token half-open gate — a burst of concurrent
+///   requests right at that instant could all probe at once — an accepted
+///   simplification at this app's traffic).
+#[cfg(feature = "ssr")]
+pub(crate) struct GithubCircuit {
+    consecutive_failures: std::sync::atomic::AtomicU32,
+    open_until_epoch_ms: std::sync::atomic::AtomicI64,
+}
+
+#[cfg(feature = "ssr")]
+pub(crate) const CIRCUIT_FAILURE_THRESHOLD: u32 = 5;
+#[cfg(feature = "ssr")]
+const CIRCUIT_OPEN_COOLDOWN_MS: i64 = 30_000;
+
+#[cfg(feature = "ssr")]
+impl GithubCircuit {
+    pub(crate) const fn new() -> Self {
+        Self {
+            consecutive_failures: std::sync::atomic::AtomicU32::new(0),
+            open_until_epoch_ms: std::sync::atomic::AtomicI64::new(0),
+        }
+    }
+
+    fn now_ms() -> i64 {
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis() as i64)
+            .unwrap_or(0)
+    }
+
+    pub(crate) fn allow_request(&self) -> bool {
+        let open_until = self.open_until_epoch_ms.load(std::sync::atomic::Ordering::Relaxed);
+        open_until == 0 || Self::now_ms() >= open_until
+    }
+
+    pub(crate) fn record_success(&self) {
+        self.consecutive_failures.store(0, std::sync::atomic::Ordering::Relaxed);
+        self.open_until_epoch_ms.store(0, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    /// Only call for failures that indicate GitHub/network trouble — a 404
+    /// (note has no translation, etc.) is not that, and must not trip this.
+    pub(crate) fn record_transient_failure(&self) {
+        let failures = self
+            .consecutive_failures
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+            + 1;
+        if failures >= CIRCUIT_FAILURE_THRESHOLD {
+            self.open_until_epoch_ms.store(
+                Self::now_ms() + CIRCUIT_OPEN_COOLDOWN_MS,
+                std::sync::atomic::Ordering::Relaxed,
+            );
+        }
+    }
+}
+
+#[cfg(feature = "ssr")]
+static GITHUB_CIRCUIT: GithubCircuit = GithubCircuit::new();
+
+#[cfg(feature = "ssr")]
+const FETCH_MAX_ATTEMPTS: u32 = 3;
+#[cfg(feature = "ssr")]
+const FETCH_BASE_BACKOFF_MS: u64 = 200;
+
+/// True for errors worth retrying (timeouts, connection failures, 5xx) —
+/// false for anything that will fail identically no matter how many times
+/// it's retried (404 chief among them: a note simply not having an `.en.md`
+/// translation is an expected, permanent outcome, not a GitHub hiccup).
+#[cfg(feature = "ssr")]
+fn is_retryable(err: &reqwest::Error) -> bool {
+    if err.is_timeout() || err.is_connect() {
+        return true;
+    }
+    match err.status() {
+        Some(status) => status.is_server_error(),
+        None => true,
+    }
+}
+
+#[cfg(feature = "ssr")]
+async fn fetch_once(url: &str) -> Result<String, reqwest::Error> {
+    http_client().get(url).send().await?.error_for_status()?.text().await
+}
+
+/// Fetches markdown source with retry-with-backoff for transient failures,
+/// gated by `GITHUB_CIRCUIT` so a sustained GitHub outage fails fast for
+/// every request instead of each one separately paying the full
+/// retry-until-timeout cost (worst case here is ~3 attempts x 8s timeout —
+/// fine for one unlucky request, not fine multiplied across every visitor
+/// while GitHub is down).
+#[cfg(feature = "ssr")]
+async fn fetch_markdown_source(url: &str) -> anyhow::Result<String> {
+    if !GITHUB_CIRCUIT.allow_request() {
+        anyhow::bail!("GitHub fetch circuit open — too many recent failures, skipping network call");
+    }
+
+    let mut last_err: Option<reqwest::Error> = None;
+    for attempt in 0..FETCH_MAX_ATTEMPTS {
+        if attempt > 0 {
+            let backoff_ms = FETCH_BASE_BACKOFF_MS * 2u64.pow(attempt - 1);
+            tokio::time::sleep(std::time::Duration::from_millis(backoff_ms)).await;
+        }
+
+        match fetch_once(url).await {
+            Ok(text) => {
+                GITHUB_CIRCUIT.record_success();
+                return Ok(text);
+            }
+            Err(err) => {
+                let retryable = is_retryable(&err);
+                tracing::warn!(%err, url, attempt, retryable, "markdown fetch attempt failed");
+                if !retryable {
+                    // Permanent (e.g. 404) — retrying can't help, and this
+                    // isn't a GitHub-health signal either.
+                    return Err(anyhow::anyhow!(err.to_string()));
+                }
+                last_err = Some(err);
+            }
+        }
+    }
+
+    // Exhausted retries on transient errors — this *is* a GitHub-health signal.
+    GITHUB_CIRCUIT.record_transient_failure();
+    Err(anyhow::anyhow!(
+        last_err
+            .map(|e| e.to_string())
+            .unwrap_or_else(|| format!("markdown fetch failed after {FETCH_MAX_ATTEMPTS} attempts"))
+    ))
+}
+
 #[cfg(feature = "ssr")]
 pub async fn process(url: &str) -> anyhow::Result<MarkdownResult> {
-    let md = reqwest::get(url)
-        .await
-        .map_err(|e| anyhow::anyhow!(e.to_string()))?
-        .error_for_status()
-        .map_err(|e| anyhow::anyhow!(e.to_string()))?
-        .text()
-        .await
-        .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+    let md = fetch_markdown_source(url).await?;
     render(&md)
 }
 
@@ -41,6 +189,36 @@ pub async fn process_localized(url: &str, locale: &str) -> anyhow::Result<Markdo
         }
     }
     process(url).await
+}
+
+/// `process_localized`, but checked against `cache` first and written back
+/// on a miss — the GitHub fetch (plus, for `en`, its double-fetch-then-
+/// fallback) then only happens once per `ttl_secs` window instead of on
+/// every single page view. TTL-only (no active invalidation): the content
+/// lives on GitHub, not in Postgres, so there's no DB write to hook an
+/// invalidation into — a content push becomes visible within the TTL, or
+/// immediately via the existing "flush all" button on `/admin/cache`.
+#[cfg(feature = "ssr")]
+pub async fn process_localized_cached(
+    cache: &dyn modules::cache::CacheService,
+    cache_key: &str,
+    url: &str,
+    locale: &str,
+    ttl_secs: u64,
+) -> anyhow::Result<MarkdownResult> {
+    if let Some(raw) = cache.get_raw(cache_key).await
+        && let Ok(cached) = serde_json::from_str::<MarkdownResult>(&raw)
+    {
+        return Ok(cached);
+    }
+
+    let result = process_localized(url, locale).await?;
+
+    if let Ok(raw) = serde_json::to_string(&result) {
+        cache.set_raw(cache_key, raw, ttl_secs).await;
+    }
+
+    Ok(result)
 }
 
 #[cfg(feature = "ssr")]

@@ -10,6 +10,9 @@ pub trait NoteService: Send + Sync {
     async fn recent(&self, limit: i64) -> Result<Vec<NoteView>>;
     async fn get_by_slug(&self, slug: &str) -> Result<Option<NoteView>>;
     async fn by_category(&self, category: &str) -> Result<Vec<NoteView>>;
+    /// Blank/whitespace-only queries short-circuit to an empty result
+    /// without touching the repository or cache.
+    async fn search(&self, query: &str, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)>;
     async fn list_admin(&self) -> Result<Vec<NoteView>>;
     async fn list_admin_page(&self, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)>;
     async fn create(&self, input: NoteCommand) -> Result<NoteView>;

@@ -17,6 +17,17 @@ pub trait CacheStore: Send + Sync {
     async fn get_version(&self, domain: &str) -> i64;
     async fn bump_version(&self, domain: &str);
 
+    /// Atomically increments `key` and returns the new count, setting `key`
+    /// to expire in `ttl_secs` the first time it's created (subsequent calls
+    /// don't push the expiry back out — same key keeps counting down to a
+    /// single fixed window rather than resetting on every hit). Built for
+    /// rate limiting (e.g. failed-login counters — see `AuthServiceImpl`),
+    /// but generically useful anywhere a distributed counter-with-expiry is
+    /// needed. On a cache error, returns 0 (fails open: a rate limiter that
+    /// can lock everyone out because the cache hiccuped is worse than one
+    /// that occasionally under-counts).
+    async fn incr_with_ttl(&self, key: &str, ttl_secs: u64) -> i64;
+
     // ── Admin/monitoring ops, used by the cache admin page ─────────────────
     async fn get_stats(&self) -> Result<CacheStats>;
     async fn get_keys(&self) -> Result<Vec<CacheKeyInfo>>;
@@ -61,3 +72,26 @@ pub fn versioned_key(domain: &str, version: i64, parts: &[&str]) -> String {
     }
     key
 }
+
+/// Shrinks an unbounded key part (e.g. a note slug) down to a fixed-length
+/// hex digest, for use as a `versioned_key` part. Use this instead of the
+/// raw value whenever the source string's length isn't bounded by app logic
+/// (slugs mirror titles and can run long) — the raw value is still what's
+/// looked up against, so the hash only needs to be deterministic, not secure.
+/// FNV-1a is used over `DefaultHasher` because its algorithm is fixed by us,
+/// not an unspecified std implementation detail.
+pub fn hash_part(input: &str) -> String {
+    const FNV_OFFSET: u64 = 0xcbf29ce484222325;
+    const FNV_PRIME: u64 = 0x100000001b3;
+
+    let mut hash = FNV_OFFSET;
+    for byte in input.as_bytes() {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(FNV_PRIME);
+    }
+    format!("{hash:016x}")
+}
+
+#[cfg(test)]
+#[path = "_store_test.rs"]
+mod tests;
