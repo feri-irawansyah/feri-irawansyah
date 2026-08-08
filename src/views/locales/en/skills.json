@@ -5,5 +5,7 @@
     "subtitle": "Technologies and tools I use to build robust, high-performance applications — from frontend to infrastructure.",
     "loading": "Loading skills...",
     "empty": "No skills added yet.",
-    "favorite": "Favorite"
+    "favorite": "Favorite",
+    "familiar": "Familiar",
+    "used_before": "Used Before"
 }

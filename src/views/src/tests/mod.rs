@@ -11,3 +11,4 @@ mod markdown_cache_test;
 mod markdown_circuit_test;
 mod markdown_test;
 mod notes_test;
+mod skills_test;
