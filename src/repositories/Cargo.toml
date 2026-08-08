@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 modules = { path = "../modules" }
 
-sqlx = { version = "0.8", features = [
+sqlx = { version = "0.8", default-features = false, features = [
     "runtime-tokio",
     "tls-rustls",
     "postgres",

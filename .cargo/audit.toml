@@ -1,0 +1,27 @@
+# cargo-audit config — see old/RATTING-TASK.md #20 for the CI job that runs
+# this (.github/workflows/cargo-audit.yml).
+#
+# Ignores here are a last resort, not a default — each one below is verified
+# unreachable in our actual build (not just "seems fine"), documented with
+# how that was checked, and dated so it's obvious when to re-check.
+
+[advisories]
+ignore = [
+    # RUSTSEC-2023-0071 — "Marvin Attack" timing side-channel in `rsa`,
+    # pulled in transitively via sqlx's optional `sqlx-mysql` backend
+    # (sqlx-mysql -> rsa, for MySQL's caching_sha2_password auth). This repo
+    # only ever uses Postgres (Aiven-hosted) — `repositories`/`schemas`
+    # explicitly set `default-features = false` on sqlx and never request
+    # the "mysql" feature. Verified with `cargo tree -i rsa` (and `-i
+    # sqlx-mysql`) returning nothing for the actual resolved build — the
+    # crate is compiled into nothing we ship, it only still appears in
+    # Cargo.lock because sqlx *could* optionally pull it in, and Cargo.lock
+    # tracks that full possibility space regardless of which features are
+    # actually on.
+    #
+    # No fixed version of `rsa` exists upstream as of this writing (advisory
+    # open since 2023-11-22) — re-check https://rustsec.org/advisories/RUSTSEC-2023-0071
+    # periodically and drop this ignore once one ships, even though it isn't
+    # exploitable here.
+    "RUSTSEC-2023-0071",
+]
