@@ -13,11 +13,6 @@ pub struct MarkdownResult {
     pub headings: Vec<HeadingItem>,
 }
 
-/// Shared client for fetching note/journey/laboratory markdown source from
-/// GitHub — a bare `reqwest::get` has no timeout at all, so a slow/hanging
-/// GitHub response used to block the SSR response indefinitely. Built once
-/// and reused (`reqwest::Client` is internally an `Arc`, cheap to clone —
-/// but here we don't even need to, `OnceLock` hands out `&'static` refs).
 #[cfg(feature = "ssr")]
 fn http_client() -> &'static reqwest::Client {
     static CLIENT: std::sync::OnceLock<reqwest::Client> = std::sync::OnceLock::new();
@@ -29,18 +24,6 @@ fn http_client() -> &'static reqwest::Client {
     })
 }
 
-/// Process-wide circuit breaker for GitHub markdown fetches — GitHub's
-/// availability isn't a per-request concern, so one shared instance for the
-/// whole server makes sense. Two effective states, tracked with two atomics
-/// instead of a state enum + lock (no request needs to block on another):
-/// - **Closed** (`open_until == 0`, or its time has passed): requests go
-///   through normally; consecutive transient failures count up.
-/// - **Open**: `open_until` is a future timestamp — every request fails
-///   fast, no network call at all, until that time passes. The first
-///   request after it passes is let through as an implicit probe (this
-///   *isn't* a strict single-token half-open gate — a burst of concurrent
-///   requests right at that instant could all probe at once — an accepted
-///   simplification at this app's traffic).
 #[cfg(feature = "ssr")]
 pub(crate) struct GithubCircuit {
     consecutive_failures: std::sync::atomic::AtomicU32,
@@ -69,13 +52,17 @@ impl GithubCircuit {
     }
 
     pub(crate) fn allow_request(&self) -> bool {
-        let open_until = self.open_until_epoch_ms.load(std::sync::atomic::Ordering::Relaxed);
+        let open_until = self
+            .open_until_epoch_ms
+            .load(std::sync::atomic::Ordering::Relaxed);
         open_until == 0 || Self::now_ms() >= open_until
     }
 
     pub(crate) fn record_success(&self) {
-        self.consecutive_failures.store(0, std::sync::atomic::Ordering::Relaxed);
-        self.open_until_epoch_ms.store(0, std::sync::atomic::Ordering::Relaxed);
+        self.consecutive_failures
+            .store(0, std::sync::atomic::Ordering::Relaxed);
+        self.open_until_epoch_ms
+            .store(0, std::sync::atomic::Ordering::Relaxed);
     }
 
     /// Only call for failures that indicate GitHub/network trouble — a 404
@@ -102,10 +89,6 @@ const FETCH_MAX_ATTEMPTS: u32 = 3;
 #[cfg(feature = "ssr")]
 const FETCH_BASE_BACKOFF_MS: u64 = 200;
 
-/// True for errors worth retrying (timeouts, connection failures, 5xx) —
-/// false for anything that will fail identically no matter how many times
-/// it's retried (404 chief among them: a note simply not having an `.en.md`
-/// translation is an expected, permanent outcome, not a GitHub hiccup).
 #[cfg(feature = "ssr")]
 fn is_retryable(err: &reqwest::Error) -> bool {
     if err.is_timeout() || err.is_connect() {
@@ -119,19 +102,21 @@ fn is_retryable(err: &reqwest::Error) -> bool {
 
 #[cfg(feature = "ssr")]
 async fn fetch_once(url: &str) -> Result<String, reqwest::Error> {
-    http_client().get(url).send().await?.error_for_status()?.text().await
+    http_client()
+        .get(url)
+        .send()
+        .await?
+        .error_for_status()?
+        .text()
+        .await
 }
 
-/// Fetches markdown source with retry-with-backoff for transient failures,
-/// gated by `GITHUB_CIRCUIT` so a sustained GitHub outage fails fast for
-/// every request instead of each one separately paying the full
-/// retry-until-timeout cost (worst case here is ~3 attempts x 8s timeout —
-/// fine for one unlucky request, not fine multiplied across every visitor
-/// while GitHub is down).
 #[cfg(feature = "ssr")]
 async fn fetch_markdown_source(url: &str) -> anyhow::Result<String> {
     if !GITHUB_CIRCUIT.allow_request() {
-        anyhow::bail!("GitHub fetch circuit open — too many recent failures, skipping network call");
+        anyhow::bail!(
+            "GitHub fetch circuit open — too many recent failures, skipping network call"
+        );
     }
 
     let mut last_err: Option<reqwest::Error> = None;
@@ -162,9 +147,9 @@ async fn fetch_markdown_source(url: &str) -> anyhow::Result<String> {
     // Exhausted retries on transient errors — this *is* a GitHub-health signal.
     GITHUB_CIRCUIT.record_transient_failure();
     Err(anyhow::anyhow!(
-        last_err
-            .map(|e| e.to_string())
-            .unwrap_or_else(|| format!("markdown fetch failed after {FETCH_MAX_ATTEMPTS} attempts"))
+        last_err.map(|e| e.to_string()).unwrap_or_else(|| format!(
+            "markdown fetch failed after {FETCH_MAX_ATTEMPTS} attempts"
+        ))
     ))
 }
 
@@ -174,10 +159,6 @@ pub async fn process(url: &str) -> anyhow::Result<MarkdownResult> {
     render(&md)
 }
 
-/// Same as `process`, but for the `en` locale it first tries an `.en.md`
-/// sibling of `url` (e.g. `README.md` -> `README.en.md`) — the convention for
-/// an optional English translation of a note's content file — falling back
-/// to `url` itself if that doesn't exist or fails to fetch.
 #[cfg(feature = "ssr")]
 pub async fn process_localized(url: &str, locale: &str) -> anyhow::Result<MarkdownResult> {
     if locale == "en"
@@ -191,13 +172,6 @@ pub async fn process_localized(url: &str, locale: &str) -> anyhow::Result<Markdo
     process(url).await
 }
 
-/// `process_localized`, but checked against `cache` first and written back
-/// on a miss — the GitHub fetch (plus, for `en`, its double-fetch-then-
-/// fallback) then only happens once per `ttl_secs` window instead of on
-/// every single page view. TTL-only (no active invalidation): the content
-/// lives on GitHub, not in Postgres, so there's no DB write to hook an
-/// invalidation into — a content push becomes visible within the TTL, or
-/// immediately via the existing "flush all" button on `/admin/cache`.
 #[cfg(feature = "ssr")]
 pub async fn process_localized_cached(
     cache: &dyn modules::cache::CacheService,
@@ -372,7 +346,7 @@ pub(crate) fn render(md: &str) -> anyhow::Result<MarkdownResult> {
                                 .replace('&', "&amp;")
                                 .replace('<', "&lt;")
                                 .replace('>', "&gt;");
-                            format!("<pre>{}</pre>", escaped)
+                            format!("<pre>{}</pre>", escaped).to_string()
                         });
                     let inner = if let (Some(s), Some(e)) =
                         (full_html.find('>'), full_html.rfind("</pre>"))

@@ -69,11 +69,11 @@ pub async fn cache_delete_key(key: String) -> Result<(), ServerFnError> {
 
 fn fmt_bytes(bytes: u64) -> String {
     if bytes >= 1024 * 1024 {
-        format!("{:.1} MB", bytes as f64 / 1_048_576.0)
+        format!("{:.1} MB", bytes as f64 / 1_048_576.0).to_string()
     } else if bytes >= 1024 {
-        format!("{:.1} KB", bytes as f64 / 1024.0)
+        format!("{:.1} KB", bytes as f64 / 1024.0).to_string()
     } else {
-        format!("{bytes} B")
+        format!("{bytes} B").to_string()
     }
 }
 
@@ -83,11 +83,11 @@ fn fmt_ttl(secs: i64) -> String {
     } else if secs < 0 {
         "Expired".to_string()
     } else if secs >= 3600 {
-        format!("{}h {}m", secs / 3600, (secs % 3600) / 60)
+        format!("{}h {}m", secs / 3600, (secs % 3600) / 60).to_string()
     } else if secs >= 60 {
-        format!("{}m {}s", secs / 60, secs % 60)
+        format!("{}m {}s", secs / 60, secs % 60).to_string()
     } else {
-        format!("{secs}s")
+        format!("{secs}s").to_string()
     }
 }
 
