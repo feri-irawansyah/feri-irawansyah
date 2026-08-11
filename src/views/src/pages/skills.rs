@@ -102,7 +102,7 @@ pub fn SkillsPage() -> impl IntoView {
                         <span class="text-xs font-semibold text-teal-500 uppercase tracking-widest mb-4 block">
                             {t!(i18n, skills.eyebrow)}
                         </span>
-                        <h1 class="text-[2.25rem] font-extrabold text-fg leading-tight mb-5">
+                        <h1 class="text-[1.85rem] sm:text-[2.25rem] font-extrabold text-fg leading-tight mb-5">
                             {t!(i18n, skills.title_before)}
                             <span class="text-teal-500">{t!(i18n, skills.title_highlight)}</span>
                         </h1>

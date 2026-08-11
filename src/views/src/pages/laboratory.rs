@@ -114,7 +114,7 @@ pub fn LaboratoryPage() -> impl IntoView {
                     <span class="text-xs font-semibold text-teal-500 uppercase tracking-widest mb-3 block">
                         {t!(i18n, laboratory.eyebrow)}
                     </span>
-                    <h1 class="text-[2.25rem] font-extrabold mb-2">{t!(i18n, laboratory.title)}</h1>
+                    <h1 class="text-[1.85rem] sm:text-[2.25rem] font-extrabold mb-2">{t!(i18n, laboratory.title)}</h1>
                     <p class="text-muted text-[1.05rem]">
                         {t!(i18n, laboratory.subtitle)}
                     </p>
@@ -188,7 +188,7 @@ pub fn LaboratoryCategoryPage() -> impl IntoView {
                 </div>
 
                 <header class="pb-8">
-                    <h1 class="text-[2.25rem] font-extrabold mb-2">{move || category_title(i18n, category())}</h1>
+                    <h1 class="text-[1.85rem] sm:text-[2.25rem] font-extrabold mb-2">{move || category_title(i18n, category())}</h1>
                 </header>
 
                 <Suspense fallback=|| view! { <ListRowSkeleton count=4 /> }>

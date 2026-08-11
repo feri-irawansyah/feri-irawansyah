@@ -65,7 +65,7 @@ pub fn AboutPage() -> impl IntoView {
                             <span class="text-xs font-semibold text-teal-500 uppercase tracking-widest mb-3 block">
                                 {t!(i18n, about.eyebrow)}
                             </span>
-                            <h1 class="text-[2.25rem] font-extrabold text-fg mb-1">"Feri Irawansyah"</h1>
+                            <h1 class="text-[1.85rem] sm:text-[2.25rem] font-extrabold text-fg mb-1">"Feri Irawansyah"</h1>
                             <p class="text-teal-500 font-semibold text-lg mb-5">
                                 {t!(i18n, about.role)}
                             </p>

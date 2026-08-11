@@ -40,7 +40,7 @@ pub fn PortfolioPage() -> impl IntoView {
         <div class="py-4">
             <div class="max-w-5xl mx-auto px-6">
                 <header class="py-12 pb-8">
-                    <h1 class="text-[2.25rem] font-extrabold mb-2">{t!(i18n, portfolio.title)}</h1>
+                    <h1 class="text-[1.85rem] sm:text-[2.25rem] font-extrabold mb-2">{t!(i18n, portfolio.title)}</h1>
                     <p class="text-muted text-[1.05rem]">
                         {t!(i18n, portfolio.subtitle)}
                     </p>

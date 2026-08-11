@@ -45,7 +45,7 @@ pub fn NoteCardSkeleton(#[prop(default = 3)] count: usize) -> impl IntoView {
 #[component]
 pub fn NoteHeroSkeleton() -> impl IntoView {
     view! {
-        <div class="w-full h-95 bg-line rounded-2xl animate-pulse mb-10"></div>
+        <div class="w-full h-64 sm:h-80 lg:h-95 bg-line rounded-2xl animate-pulse mb-10"></div>
     }
 }
 

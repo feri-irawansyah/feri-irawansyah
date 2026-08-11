@@ -215,7 +215,7 @@ pub fn NotesPage() -> impl IntoView {
             <div class="max-w-5xl mx-auto px-6">
                 <header class="py-12 pb-8 flex flex-wrap items-end justify-between gap-4">
                     <div>
-                        <h1 class="text-[2.25rem] font-extrabold mb-2">{t!(i18n, notes.title)}</h1>
+                        <h1 class="text-[1.85rem] sm:text-[2.25rem] font-extrabold mb-2">{t!(i18n, notes.title)}</h1>
                         <p class="text-muted text-[1.05rem]">
                             {t!(i18n, notes.subtitle)}
                         </p>
@@ -545,9 +545,9 @@ fn NoteDetail(
             .unwrap_or(0)
     };
     view! {
-        <div class="flex gap-10 items-start">
-            <article class="flex-1 min-w-0 pb-12">
-                <header class="relative w-full h-95 overflow-hidden mb-10">
+        <div class="flex flex-col xl:flex-row gap-10 items-start">
+            <article class="flex-1 min-w-0 w-full pb-12">
+                <header class="relative w-full h-64 sm:h-80 lg:h-95 overflow-hidden mb-10 rounded-2xl sm:rounded-none">
                     <img
                         src=img_url
                         alt=note.title.clone()
@@ -567,8 +567,8 @@ fn NoteDetail(
                         }
                     />
                     <div class="absolute inset-0 bg-linear-to-t from-base via-base/70 to-transparent"></div>
-                    <div class="absolute bottom-0 left-0 right-0 px-8 pb-8">
-                        <div class="flex gap-4 items-center mb-3">
+                    <div class="absolute bottom-0 left-0 right-0 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
+                        <div class="flex flex-wrap gap-2 sm:gap-4 items-center mb-3">
                             <span class="text-xs font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-[0.06em]">
                                 {note.category.clone()}
                             </span>
@@ -582,8 +582,8 @@ fn NoteDetail(
                                 </span>
                             })}
                         </div>
-                        <h1 class="text-3xl font-extrabold mb-2 leading-tight text-gray-600 dark:text-white">{note.title}</h1>
-                        <p class="text-gray-500 dark:text-white/70 text-[1.05rem] mb-4">{note.description}</p>
+                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-extrabold mb-2 leading-tight text-gray-600 dark:text-white">{note.title}</h1>
+                        <p class="text-gray-500 dark:text-white/70 text-sm sm:text-[1.05rem] mb-4 line-clamp-2 sm:line-clamp-none">{note.description}</p>
                         <div class="flex flex-wrap gap-1.5">
                             {note.hashtag.into_iter().map(|tag| view! {
                                 <span class="text-xs px-2.5 py-0.5 rounded-full bg-white/80 dark:bg-white/10 text-gray-600 dark:text-white/70 backdrop-blur-sm">
