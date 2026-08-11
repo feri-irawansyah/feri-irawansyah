@@ -29,6 +29,16 @@ fi
 echo "==> Ensuring nginx is installed"
 command -v nginx >/dev/null || { apt-get update && apt-get install -y nginx; }
 
+# Brotli support isn't compiled into nginx core (unlike gzip) — it's a
+# separate dynamic module. These Debian/Ubuntu packages drop a load_module
+# snippet into /etc/nginx/modules-enabled/, which the stock nginx.conf
+# already `include`s, so no manual load_module editing is needed here.
+echo "==> Ensuring nginx brotli module is installed"
+dpkg -s libnginx-mod-http-brotli-static >/dev/null 2>&1 || {
+    apt-get update
+    apt-get install -y libnginx-mod-http-brotli-filter libnginx-mod-http-brotli-static
+}
+
 echo "==> Ensuring valkey-server is installed and configured"
 if ! command -v valkey-server >/dev/null 2>&1; then
     apt-get update && apt-get install -y valkey-server

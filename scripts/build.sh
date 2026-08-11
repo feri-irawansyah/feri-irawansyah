@@ -36,6 +36,21 @@ cp scripts/templates/429.html "$DIST_DIR/public/429.html"
 cp scripts/templates/502.html "$DIST_DIR/public/502.html"
 mkdir -p "$DIST_DIR/uploads"
 
+echo "==> Precompressing static assets (brotli, for nginx's brotli_static)"
+# actix's middleware::Compress already compresses on the fly for anything
+# proxied to the app, but nginx serves /pkg and /public directly off disk
+# (see nginx.conf) — brotli_static there needs a sibling *.br next to each
+# file, not on-the-fly compression, so we produce them here at build time.
+COMPRESSIBLE=(-name '*.js' -o -name '*.css' -o -name '*.wasm' -o -name '*.svg'
+              -o -name '*.json' -o -name '*.xml' -o -name '*.txt')
+
+if command -v brotli >/dev/null 2>&1; then
+    find "$DIST_DIR/site" "$DIST_DIR/public" -type f \( "${COMPRESSIBLE[@]}" \) \
+        -exec brotli -q 11 -k -f {} \;
+else
+    echo "!! brotli not found — skipping .br precompression (apt install brotli), nginx's brotli_static will just miss" >&2
+fi
+
 echo "==> Bundling nginx site, systemd unit, valkey config, and server-side install script"
 mkdir -p "$DIST_DIR/nginx" "$DIST_DIR/systemd" "$DIST_DIR/valkey"
 cp scripts/templates/nginx.conf "$DIST_DIR/nginx/feri-irawansyah.conf"
