@@ -5,7 +5,6 @@ use crate::pages::admin::layout::{
 use leptos::prelude::*;
 
 // ── ErrorCard ────────────────────────────────────────────────────────────────
-
 #[test]
 fn error_card_renders_message() {
     let view = ErrorCard(
@@ -19,7 +18,6 @@ fn error_card_renders_message() {
 }
 
 // ── TableErrorRow ────────────────────────────────────────────────────────────
-
 #[test]
 fn table_error_row_uses_default_colspan() {
     let view = TableErrorRow(
@@ -45,7 +43,6 @@ fn table_error_row_respects_custom_colspan() {
 }
 
 // ── TableSkeleton ────────────────────────────────────────────────────────────
-
 #[test]
 fn table_skeleton_renders_default_rows_and_cols() {
     let view = TableSkeleton(TableSkeletonProps::builder().build());
