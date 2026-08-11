@@ -24,8 +24,7 @@ pub fn asset_url(path: &str) -> String {
     format!("{ASSET_BASE}/{path}")
 }
 
-/// The hero/profile image reused across SEO tags, structured data, and the
-/// about/home pages.
+/// The hero/profile image reused across SEO tags, structured data, and the about/home pages.
 pub fn hero_image_url() -> String {
     asset_url("hero-bg.webp")
 }

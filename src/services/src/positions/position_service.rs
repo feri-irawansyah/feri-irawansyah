@@ -28,7 +28,7 @@ impl PositionServiceImpl {
             .collect::<HashSet<_>>()
             .into_iter()
             .collect();
-        let experiences = self.experience_repo.find_by_ids(&ids).await?;
+        let experiences = self.experience_repo.find_by_ids_async(&ids).await?;
         let exp_by_id: HashMap<i32, modules::experience::ExperienceView> =
             experiences.into_iter().map(|e| (e.id, e)).collect();
 
@@ -58,27 +58,27 @@ impl PositionServiceImpl {
 
 #[async_trait]
 impl PositionService for PositionServiceImpl {
-    async fn list(&self) -> Result<Vec<PositionView>> {
-        let rows = self.repo.find_all().await?;
+    async fn find_all_async(&self) -> Result<Vec<PositionView>> {
+        let rows = self.repo.find_all_async().await?;
         self.merge(rows).await
     }
 
-    async fn list_page(&self, page: i64, per_page: i64) -> Result<(Vec<PositionView>, i64)> {
-        let (rows, total) = self.repo.find_page(page, per_page).await?;
+    async fn find_page_async(&self, page: i64, per_page: i64) -> Result<(Vec<PositionView>, i64)> {
+        let (rows, total) = self.repo.find_page_async(page, per_page).await?;
         let merged = self.merge(rows).await?;
         Ok((merged, total))
     }
 
-    async fn get(&self, id: i32) -> Result<Option<PositionView>> {
-        let Some(row) = self.repo.find_by_id(id).await? else {
+    async fn find_by_id_async(&self, id: i32) -> Result<Option<PositionView>> {
+        let Some(row) = self.repo.find_by_id_async(id).await? else {
             return Ok(None);
         };
         let merged = self.merge(vec![row]).await?;
         Ok(merged.into_iter().next())
     }
 
-    async fn create(&self, input: PositionCommand) -> Result<PositionView> {
-        let row = self.repo.create(input).await?;
+    async fn create_async(&self, input: PositionCommand) -> Result<PositionView> {
+        let row = self.repo.create_async(input).await?;
         let merged = self.merge(vec![row]).await?;
         merged
             .into_iter()
@@ -86,15 +86,15 @@ impl PositionService for PositionServiceImpl {
             .ok_or_else(|| anyhow::anyhow!("Experience terkait tidak ditemukan"))
     }
 
-    async fn update(&self, id: i32, input: PositionCommand) -> Result<Option<PositionView>> {
-        let Some(row) = self.repo.update(id, input).await? else {
+    async fn update_async(&self, id: i32, input: PositionCommand) -> Result<Option<PositionView>> {
+        let Some(row) = self.repo.update_async(id, input).await? else {
             return Ok(None);
         };
         let merged = self.merge(vec![row]).await?;
         Ok(merged.into_iter().next())
     }
 
-    async fn delete(&self, id: i32) -> Result<bool> {
-        self.repo.delete(id).await
+    async fn delete_async(&self, id: i32) -> Result<bool> {
+        self.repo.delete_async(id).await
     }
 }

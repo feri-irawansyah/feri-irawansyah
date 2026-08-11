@@ -20,17 +20,12 @@ async fn skill_svc() -> Result<std::sync::Arc<dyn modules::skills::SkillService>
 pub async fn get_all_skills() -> Result<Vec<SkillView>, ServerFnError> {
     skill_svc()
         .await?
-        .list()
+        .find_all_async()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
 
 /// Groups the tech-stack grid by the manually-set `star` rating (0-5) rather
-/// than one flat paginated list — this is the *same* field the per-card star
-/// icons/badge in `skill_card` read, so a card's badge and the section it
-/// sits under always agree (no more "Favorit" badge showing up under a
-/// "Familiar" heading, which was a real mismatch when this used to be keyed
-/// on `progress` instead).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum SkillTier {
     Favorite,

@@ -33,7 +33,7 @@ async fn cert_svc()
 pub async fn get_all_positions() -> Result<Vec<PositionView>, ServerFnError> {
     position_svc()
         .await?
-        .list()
+        .find_all_async()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -42,7 +42,7 @@ pub async fn get_all_positions() -> Result<Vec<PositionView>, ServerFnError> {
 pub async fn get_all_certifications() -> Result<Vec<CertView>, ServerFnError> {
     cert_svc()
         .await?
-        .list()
+        .find_all_async()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }

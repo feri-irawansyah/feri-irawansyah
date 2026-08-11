@@ -15,7 +15,7 @@ impl NoteRepositoryImpl {
 
 #[async_trait]
 impl NoteRepository for NoteRepositoryImpl {
-    async fn find_all(&self) -> Result<Vec<NoteView>> {
+    async fn find_all_async(&self) -> Result<Vec<NoteView>> {
         let rows = sqlx::query_as::<_, NoteView>(
             "SELECT notes_id, category, title, slug, content, description,
                     COALESCE(hashtag, '{}') as hashtag,
@@ -29,7 +29,7 @@ impl NoteRepository for NoteRepositoryImpl {
         Ok(rows)
     }
 
-    async fn find_recent(&self, limit: i64) -> Result<Vec<NoteView>> {
+    async fn find_recent_async(&self, limit: i64) -> Result<Vec<NoteView>> {
         let rows = sqlx::query_as::<_, NoteView>(
             "SELECT notes_id, category, title, slug, content, description,
                     COALESCE(hashtag, '{}') as hashtag,
@@ -44,7 +44,7 @@ impl NoteRepository for NoteRepositoryImpl {
         Ok(rows)
     }
 
-    async fn find_by_slug(&self, slug: &str) -> Result<Option<NoteView>> {
+    async fn find_by_slug_async(&self, slug: &str) -> Result<Option<NoteView>> {
         let row = sqlx::query_as::<_, NoteView>(
             "SELECT notes_id, category, title, slug, content, description,
                     COALESCE(hashtag, '{}') as hashtag,
@@ -59,7 +59,7 @@ impl NoteRepository for NoteRepositoryImpl {
         Ok(row)
     }
 
-    async fn find_by_category(&self, category: &str) -> Result<Vec<NoteView>> {
+    async fn find_by_category_async(&self, category: &str) -> Result<Vec<NoteView>> {
         let rows = sqlx::query_as::<_, NoteView>(
             "SELECT notes_id, category, title, slug, content, description,
                     COALESCE(hashtag, '{}') as hashtag,
@@ -74,7 +74,7 @@ impl NoteRepository for NoteRepositoryImpl {
         Ok(rows)
     }
 
-    async fn find_paginated(&self, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)> {
+    async fn find_paginated_async(&self, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)> {
         let total: i64 =
             sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM notes WHERE enabled = TRUE")
                 .fetch_one(&self.pool)
@@ -95,7 +95,7 @@ impl NoteRepository for NoteRepositoryImpl {
         Ok((rows, total))
     }
 
-    async fn search(&self, query: &str, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)> {
+    async fn search_async(&self, query: &str, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)> {
         let offset = (page - 1).max(0) * per_page;
         let total: i64 = sqlx::query_scalar::<_, i64>(
             "SELECT COUNT(*) FROM notes
@@ -123,7 +123,7 @@ impl NoteRepository for NoteRepositoryImpl {
         Ok((rows, total))
     }
 
-    async fn find_all_admin(&self) -> Result<Vec<NoteView>> {
+    async fn find_all_admin_async(&self) -> Result<Vec<NoteView>> {
         let rows = sqlx::query_as::<_, NoteView>(
             "SELECT notes_id, category, title, slug, content, description,
                     COALESCE(hashtag, '{}') as hashtag,
@@ -137,7 +137,7 @@ impl NoteRepository for NoteRepositoryImpl {
         Ok(rows)
     }
 
-    async fn find_all_admin_page(&self, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)> {
+    async fn find_all_admin_page_async(&self, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)> {
         let total: i64 = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM notes")
             .fetch_one(&self.pool)
             .await?;
@@ -158,7 +158,7 @@ impl NoteRepository for NoteRepositoryImpl {
         Ok((rows, total))
     }
 
-    async fn create(&self, input: NoteCommand) -> Result<NoteView> {
+    async fn create_async(&self, input: NoteCommand) -> Result<NoteView> {
         let row = sqlx::query_as::<_, NoteView>(
             "INSERT INTO notes (category, title, slug, content, description, hashtag, enabled)
              VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -180,7 +180,7 @@ impl NoteRepository for NoteRepositoryImpl {
         Ok(row)
     }
 
-    async fn update(&self, id: i32, input: NoteCommand) -> Result<Option<NoteView>> {
+    async fn update_async(&self, id: i32, input: NoteCommand) -> Result<Option<NoteView>> {
         let row = sqlx::query_as::<_, NoteView>(
             "UPDATE notes
              SET category = $2, title = $3, slug = $4, content = $5, description = $6,
@@ -205,7 +205,7 @@ impl NoteRepository for NoteRepositoryImpl {
         Ok(row)
     }
 
-    async fn toggle_enabled(&self, id: i32, enabled: bool) -> Result<bool> {
+    async fn toggle_enabled_async(&self, id: i32, enabled: bool) -> Result<bool> {
         let result =
             sqlx::query("UPDATE notes SET enabled = $2, last_update = NOW() WHERE notes_id = $1")
                 .bind(id)
@@ -215,7 +215,7 @@ impl NoteRepository for NoteRepositoryImpl {
         Ok(result.rows_affected() > 0)
     }
 
-    async fn delete(&self, id: i32) -> Result<bool> {
+    async fn delete_async(&self, id: i32) -> Result<bool> {
         let result = sqlx::query("DELETE FROM notes WHERE notes_id = $1")
             .bind(id)
             .execute(&self.pool)

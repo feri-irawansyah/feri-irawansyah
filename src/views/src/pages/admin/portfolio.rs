@@ -26,7 +26,7 @@ pub async fn admin_list_portfolio() -> Result<Vec<PortfolioView>, ServerFnError>
     crate::pages::admin::require_admin().await?;
     portfolio_svc()
         .await?
-        .list()
+        .find_all_async()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -39,7 +39,7 @@ pub async fn admin_list_portfolio_page(
     crate::pages::admin::require_admin().await?;
     portfolio_svc()
         .await?
-        .list_page(page, 10)
+        .find_page_async(page, 10)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -52,7 +52,7 @@ pub async fn admin_create_portfolio(
     input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
     portfolio_svc()
         .await?
-        .create(input)
+        .create_async(input)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -66,7 +66,7 @@ pub async fn admin_update_portfolio(
     input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
     portfolio_svc()
         .await?
-        .update(id, input)
+        .update_async(id, input)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -76,7 +76,7 @@ pub async fn admin_delete_portfolio(id: i32) -> Result<bool, ServerFnError> {
     crate::pages::admin::require_admin().await?;
     portfolio_svc()
         .await?
-        .delete(id)
+        .delete_async(id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }

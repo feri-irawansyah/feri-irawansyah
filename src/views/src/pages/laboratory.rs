@@ -7,9 +7,6 @@ use leptos_i18n::I18nContext;
 use leptos_router::hooks::use_params_map;
 use modules::laboratory::LaboratoryView;
 
-/// (slug, Supabase image filename) for the 5 fixed lab categories. Display
-/// titles come from the `laboratory.categories.*` i18n keys instead of being
-/// hardcoded here, since "Security & DevOps" etc. should still translate.
 const CATEGORIES: &[(&str, &str)] = &[
     ("performance", "fullstack.webp"),
     ("security", "devops.webp"),
@@ -57,7 +54,7 @@ pub async fn get_lab_category_page(
 ) -> Result<(Vec<LaboratoryView>, i64), ServerFnError> {
     laboratory_svc()
         .await?
-        .by_category_page(&category, page, 8)
+        .find_by_category_page_async(&category, page, 8)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -66,7 +63,7 @@ pub async fn get_lab_category_page(
 pub async fn get_lab_by_slug(slug: String) -> Result<Option<LaboratoryView>, ServerFnError> {
     laboratory_svc()
         .await?
-        .get_by_slug(&slug)
+        .find_by_slug_async(&slug)  
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -100,7 +97,6 @@ pub async fn fetch_lab_markdown_html(
 }
 
 // ── Pages ────────────────────────────────────────────────────────────────────
-
 #[allow(non_snake_case)]
 #[component]
 pub fn LaboratoryPage() -> impl IntoView {

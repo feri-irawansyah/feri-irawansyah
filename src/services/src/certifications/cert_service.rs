@@ -19,7 +19,7 @@ impl CertServiceImpl {
 
 #[async_trait]
 impl CertService for CertServiceImpl {
-    async fn list(&self) -> Result<Vec<CertView>> {
-        self.repo.find_all().await
+    async fn find_all_async(&self) -> Result<Vec<CertView>> {
+        self.repo.find_all_async().await
     }
 }

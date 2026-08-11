@@ -33,7 +33,7 @@ fn xml_escape(s: &str) -> String {
 pub async fn rss_xml(
     note_svc: actix_web::web::Data<std::sync::Arc<dyn modules::notes::NoteService>>,
 ) -> impl actix_web::Responder {
-    let notes = note_svc.list().await.unwrap_or_default();
+    let notes = note_svc.find_all_async().await.unwrap_or_default();
 
     let items: String = notes
         .iter()
@@ -70,7 +70,7 @@ pub async fn rss_xml(
 pub async fn sitemap_xml(
     note_svc: actix_web::web::Data<std::sync::Arc<dyn modules::notes::NoteService>>,
 ) -> impl actix_web::Responder {
-    let notes = note_svc.list().await.unwrap_or_default();
+    let notes = note_svc.find_all_async().await.unwrap_or_default();
 
     let mut xml = String::from(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n",

@@ -22,7 +22,7 @@ impl LaboratoryRepositoryImpl {
 
 #[async_trait]
 impl LaboratoryRepository for LaboratoryRepositoryImpl {
-    async fn find_by_slug(&self, slug: &str) -> Result<Option<LaboratoryView>> {
+    async fn find_by_slug_async(&self, slug: &str) -> Result<Option<LaboratoryView>> {
         let row = sqlx::query_as::<_, LaboratoryView>(&format!("{SELECT_ALL} WHERE slug = $1"))
             .bind(slug)
             .fetch_optional(&self.pool)
@@ -30,7 +30,7 @@ impl LaboratoryRepository for LaboratoryRepositoryImpl {
         Ok(row)
     }
 
-    async fn find_by_category_page(
+    async fn find_by_category_page_async(
         &self,
         category: &str,
         page: i64,
@@ -55,7 +55,7 @@ impl LaboratoryRepository for LaboratoryRepositoryImpl {
         Ok((rows, total))
     }
 
-    async fn find_all_admin(&self) -> Result<Vec<LaboratoryView>> {
+    async fn find_all_admin_async(&self) -> Result<Vec<LaboratoryView>> {
         let rows = sqlx::query_as::<_, LaboratoryView>(&format!(
             "{SELECT_ALL} ORDER BY last_update DESC"
         ))
@@ -64,7 +64,7 @@ impl LaboratoryRepository for LaboratoryRepositoryImpl {
         Ok(rows)
     }
 
-    async fn find_all_admin_page(&self, page: i64, per_page: i64) -> Result<(Vec<LaboratoryView>, i64)> {
+    async fn find_all_admin_page_async(&self, page: i64, per_page: i64) -> Result<(Vec<LaboratoryView>, i64)> {
         let total: i64 = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM labolatory")
             .fetch_one(&self.pool)
             .await?;
@@ -79,7 +79,7 @@ impl LaboratoryRepository for LaboratoryRepositoryImpl {
         Ok((rows, total))
     }
 
-    async fn create(&self, input: LaboratoryCommand) -> Result<LaboratoryView> {
+    async fn create_async(&self, input: LaboratoryCommand) -> Result<LaboratoryView> {
         let row = sqlx::query_as::<_, LaboratoryView>(
             "INSERT INTO labolatory (category, title, slug, content, description, hashtag, enabled)
              VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -101,7 +101,7 @@ impl LaboratoryRepository for LaboratoryRepositoryImpl {
         Ok(row)
     }
 
-    async fn update(&self, id: i32, input: LaboratoryCommand) -> Result<Option<LaboratoryView>> {
+    async fn update_async(&self, id: i32, input: LaboratoryCommand) -> Result<Option<LaboratoryView>> {
         let row = sqlx::query_as::<_, LaboratoryView>(
             "UPDATE labolatory
              SET category = $2, title = $3, slug = $4, content = $5, description = $6,
@@ -126,7 +126,7 @@ impl LaboratoryRepository for LaboratoryRepositoryImpl {
         Ok(row)
     }
 
-    async fn delete(&self, id: i32) -> Result<bool> {
+    async fn delete_async(&self, id: i32) -> Result<bool> {
         let result = sqlx::query("DELETE FROM labolatory WHERE lab_id = $1")
             .bind(id)
             .execute(&self.pool)

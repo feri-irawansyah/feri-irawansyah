@@ -24,7 +24,7 @@ pub async fn admin_list_notes() -> Result<Vec<NoteView>, ServerFnError> {
     crate::pages::admin::require_admin().await?;
     note_svc()
         .await?
-        .list_admin()
+        .find_all_admin_async()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -35,7 +35,7 @@ pub async fn admin_list_notes_page(page: i64) -> Result<(Vec<NoteView>, i64), Se
     crate::pages::admin::require_admin().await?;
     note_svc()
         .await?
-        .list_admin_page(page, 10)
+        .find_all_admin_page_async(page, 10)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -48,7 +48,7 @@ pub async fn admin_create_note(
     input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
     note_svc()
         .await?
-        .create(input)
+        .create_async(input)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -62,7 +62,7 @@ pub async fn admin_update_note(
     input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
     note_svc()
         .await?
-        .update(id, input)
+        .update_async(id, input)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -72,7 +72,7 @@ pub async fn admin_toggle_note(id: i32, enabled: bool) -> Result<(), ServerFnErr
     crate::pages::admin::require_admin().await?;
     note_svc()
         .await?
-        .toggle_enabled(id, enabled)
+        .toggle_enabled_async(id, enabled)
         .await
         .map(|_| ())
         .map_err(|e| ServerFnError::new(e.to_string()))
@@ -83,7 +83,7 @@ pub async fn admin_delete_note(id: i32) -> Result<bool, ServerFnError> {
     crate::pages::admin::require_admin().await?;
     note_svc()
         .await?
-        .delete(id)
+        .delete_async(id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }

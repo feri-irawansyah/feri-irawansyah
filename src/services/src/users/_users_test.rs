@@ -28,7 +28,7 @@ impl MockUserRepo {
 
 #[async_trait::async_trait]
 impl UserRepository for MockUserRepo {
-    async fn create(
+    async fn create_async(
         &self,
         email: &str,
         password_hash: &str,
@@ -43,7 +43,7 @@ impl UserRepository for MockUserRepo {
         Ok(u)
     }
 
-    async fn find_by_id(&self, id: i32) -> anyhow::Result<Option<UserView>> {
+    async fn find_by_id_async(&self, id: i32) -> anyhow::Result<Option<UserView>> {
         Ok(self
             .users
             .lock()
@@ -53,7 +53,7 @@ impl UserRepository for MockUserRepo {
             .cloned())
     }
 
-    async fn find_by_email(&self, email: &str) -> anyhow::Result<Option<UserView>> {
+    async fn find_by_email_async(&self, email: &str) -> anyhow::Result<Option<UserView>> {
         Ok(self
             .users
             .lock()
@@ -63,7 +63,7 @@ impl UserRepository for MockUserRepo {
             .cloned())
     }
 
-    async fn list(&self, limit: i64, offset: i64) -> anyhow::Result<Vec<UserView>> {
+    async fn find_all_async(&self, limit: i64, offset: i64) -> anyhow::Result<Vec<UserView>> {
         let users = self.users.lock().unwrap();
         Ok(users
             .iter()
@@ -134,7 +134,7 @@ fn seed_users(n: usize) -> Vec<UserView> {
 async fn create_hashes_password_not_plaintext() {
     let svc = make_svc(MockUserRepo::empty());
     let result = svc
-        .create("new@test.com", "plaintext", "New User", 0)
+        .create_async("new@test.com", "plaintext", "New User", 0)
         .await
         .unwrap();
     assert_ne!(result.password, "plaintext", "password must be hashed");
@@ -148,7 +148,7 @@ async fn create_hashes_password_not_plaintext() {
 async fn create_stores_correct_metadata() {
     let svc = make_svc(MockUserRepo::empty());
     let result = svc
-        .create("meta@test.com", "pass", "Full Name", 1)
+        .create_async("meta@test.com", "pass", "Full Name", 1)
         .await
         .unwrap();
     assert_eq!(result.email, "meta@test.com");
@@ -162,7 +162,7 @@ async fn create_stores_correct_metadata() {
 async fn find_by_id_returns_user_when_found() {
     let users = seed_users(3);
     let svc = make_svc(MockUserRepo::new(users));
-    let found = svc.find_by_id(2).await.unwrap();
+    let found = svc.find_by_id_async(2).await.unwrap();
     assert!(found.is_some());
     assert_eq!(found.unwrap().id, 2);
 }
@@ -170,7 +170,7 @@ async fn find_by_id_returns_user_when_found() {
 #[tokio::test]
 async fn find_by_id_returns_none_when_missing() {
     let svc = make_svc(MockUserRepo::empty());
-    assert!(svc.find_by_id(99).await.unwrap().is_none());
+    assert!(svc.find_by_id_async(99).await.unwrap().is_none());
 }
 
 // ── find_by_email ─────────────────────────────────────────────────────────────
@@ -179,7 +179,7 @@ async fn find_by_id_returns_none_when_missing() {
 async fn find_by_email_returns_user_when_found() {
     let users = seed_users(3);
     let svc = make_svc(MockUserRepo::new(users));
-    let found = svc.find_by_email("user2@test.com").await.unwrap();
+    let found = svc.find_by_email_async("user2@test.com").await.unwrap();
     assert!(found.is_some());
     assert_eq!(found.unwrap().email, "user2@test.com");
 }
@@ -187,30 +187,30 @@ async fn find_by_email_returns_user_when_found() {
 #[tokio::test]
 async fn find_by_email_returns_none_when_missing() {
     let svc = make_svc(MockUserRepo::empty());
-    assert!(svc.find_by_email("ghost@test.com").await.unwrap().is_none());
+    assert!(svc.find_by_email_async("ghost@test.com").await.unwrap().is_none());
 }
 
-// ── list ─────────────────────────────────────────────────────────────────────
+// ── find_all ──────────────────────────────────────────────────────────────────
 
 #[tokio::test]
-async fn list_respects_limit() {
+async fn find_all_respects_limit() {
     let users = seed_users(10);
     let svc = make_svc(MockUserRepo::new(users));
-    let page = svc.list(3, 0).await.unwrap();
+    let page = svc.find_all_async(3, 0).await.unwrap();
     assert_eq!(page.len(), 3);
 }
 
 #[tokio::test]
-async fn list_respects_offset() {
+async fn find_all_respects_offset() {
     let users = seed_users(5);
     let svc = make_svc(MockUserRepo::new(users));
-    let page = svc.list(10, 3).await.unwrap();
+    let page = svc.find_all_async(10, 3).await.unwrap();
     assert_eq!(page.len(), 2);
     assert_eq!(page[0].id, 4);
 }
 
 #[tokio::test]
-async fn list_empty_repo_returns_empty() {
+async fn find_all_empty_repo_returns_empty() {
     let svc = make_svc(MockUserRepo::empty());
-    assert!(svc.list(20, 0).await.unwrap().is_empty());
+    assert!(svc.find_all_async(20, 0).await.unwrap().is_empty());
 }

@@ -56,7 +56,7 @@ pub async fn admin_list_experiences() -> Result<Vec<ExperienceView>, ServerFnErr
     crate::pages::admin::require_admin().await?;
     experience_svc()
         .await?
-        .list()
+        .find_all_async()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -72,7 +72,7 @@ pub async fn admin_list_experiences_page(
     crate::pages::admin::require_admin().await?;
     experience_svc()
         .await?
-        .list_page(page, 10)
+        .find_page_async(page, 10)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -101,7 +101,7 @@ pub async fn admin_create_experience(
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     experience_svc()
         .await?
-        .create(input)
+        .create_async(input)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -131,7 +131,7 @@ pub async fn admin_update_experience(
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     experience_svc()
         .await?
-        .update(id, input)
+        .update_async(id, input)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -141,7 +141,7 @@ pub async fn admin_delete_experience(id: i32) -> Result<bool, ServerFnError> {
     crate::pages::admin::require_admin().await?;
     experience_svc()
         .await?
-        .delete(id)
+        .delete_async(id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -151,7 +151,7 @@ pub async fn admin_list_positions() -> Result<Vec<PositionView>, ServerFnError> 
     crate::pages::admin::require_admin().await?;
     position_svc()
         .await?
-        .list()
+        .find_all_async()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -166,7 +166,7 @@ pub async fn admin_list_positions_page(
     crate::pages::admin::require_admin().await?;
     position_svc()
         .await?
-        .list_page(page, 10)
+        .find_page_async(page, 10)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -223,7 +223,7 @@ pub async fn admin_create_position(
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     position_svc()
         .await?
-        .create(input)
+        .create_async(input)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -240,7 +240,7 @@ pub async fn admin_update_position(
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     position_svc()
         .await?
-        .update(id, input)
+        .update_async(id, input)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -250,7 +250,7 @@ pub async fn admin_delete_position(id: i32) -> Result<bool, ServerFnError> {
     crate::pages::admin::require_admin().await?;
     position_svc()
         .await?
-        .delete(id)
+        .delete_async(id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }

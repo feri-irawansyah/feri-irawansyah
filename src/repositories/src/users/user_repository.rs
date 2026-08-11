@@ -26,7 +26,7 @@ impl UserRepositoryImpl {
 
 #[async_trait]
 impl UserRepository for UserRepositoryImpl {
-    async fn create(
+    async fn create_async(
         &self,
         email: &str,
         password_hash: &str,
@@ -51,7 +51,7 @@ impl UserRepository for UserRepositoryImpl {
         Ok(row)
     }
 
-    async fn find_by_id(&self, id: i32) -> Result<Option<UserView>> {
+    async fn find_by_id_async(&self, id: i32) -> Result<Option<UserView>> {
         let row = sqlx::query_as::<_, UserView>(&format!("{SELECT_ALL} WHERE id = $1"))
             .bind(id)
             .fetch_optional(&self.pool)
@@ -59,7 +59,7 @@ impl UserRepository for UserRepositoryImpl {
         Ok(row)
     }
 
-    async fn find_by_email(&self, email: &str) -> Result<Option<UserView>> {
+    async fn find_by_email_async(&self, email: &str) -> Result<Option<UserView>> {
         let row = sqlx::query_as::<_, UserView>(&format!("{SELECT_ALL} WHERE email = $1"))
             .bind(email)
             .fetch_optional(&self.pool)
@@ -67,7 +67,7 @@ impl UserRepository for UserRepositoryImpl {
         Ok(row)
     }
 
-    async fn list(&self, limit: i64, offset: i64) -> Result<Vec<UserView>> {
+    async fn find_all_async(&self, limit: i64, offset: i64) -> Result<Vec<UserView>> {
         let rows = sqlx::query_as::<_, UserView>(&format!(
             "{SELECT_ALL} ORDER BY id ASC LIMIT $1 OFFSET $2"
         ))

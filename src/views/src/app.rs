@@ -136,7 +136,6 @@ fn Shell(is_dark: ReadSignal<bool>, set_is_dark: WriteSignal<bool>) -> impl Into
         </Show>
 
         // ── Bottom Nav — public pages only, mobile only ──────────────────
-        // Single FAB that fans its items out in a crescent arc above itself.
         <Show when=move || !is_admin()>
             <div
                 class="md:hidden fixed inset-0 z-40 bg-black/40 transition-opacity duration-200"
@@ -285,7 +284,6 @@ fn Shell(is_dark: ReadSignal<bool>, set_is_dark: WriteSignal<bool>) -> impl Into
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     // Only fires in production, and only if GA_MEASUREMENT_ID is actually set —
     // keeps local dev traffic out of Analytics even if a prod .env gets copied
-    // around locally.
     let ga_id = (options.env == leptos::config::Env::PROD)
         .then(|| std::env::var("GA_MEASUREMENT_ID").ok())
         .flatten()

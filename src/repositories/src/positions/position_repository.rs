@@ -15,7 +15,7 @@ impl PositionRepositoryImpl {
 
 #[async_trait]
 impl PositionRepository for PositionRepositoryImpl {
-    async fn find_all(&self) -> Result<Vec<PositionRow>> {
+    async fn find_all_async(&self) -> Result<Vec<PositionRow>> {
         let rows = sqlx::query_as::<_, PositionRow>(
             "SELECT id, experience_id, title, address, start_date, end_date,
                     description, job_position, job_type, sort_order
@@ -27,7 +27,7 @@ impl PositionRepository for PositionRepositoryImpl {
         Ok(rows)
     }
 
-    async fn find_page(&self, page: i64, per_page: i64) -> Result<(Vec<PositionRow>, i64)> {
+    async fn find_page_async(&self, page: i64, per_page: i64) -> Result<(Vec<PositionRow>, i64)> {
         let total: i64 = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM positions")
             .fetch_one(&self.pool)
             .await?;
@@ -46,7 +46,7 @@ impl PositionRepository for PositionRepositoryImpl {
         Ok((rows, total))
     }
 
-    async fn find_by_id(&self, id: i32) -> Result<Option<PositionRow>> {
+    async fn find_by_id_async(&self, id: i32) -> Result<Option<PositionRow>> {
         let row = sqlx::query_as::<_, PositionRow>(
             "SELECT id, experience_id, title, address, start_date, end_date,
                     description, job_position, job_type, sort_order
@@ -59,7 +59,7 @@ impl PositionRepository for PositionRepositoryImpl {
         Ok(row)
     }
 
-    async fn create(&self, input: PositionCommand) -> Result<PositionRow> {
+    async fn create_async(&self, input: PositionCommand) -> Result<PositionRow> {
         let row = sqlx::query_as::<_, PositionRow>(
             "INSERT INTO positions
                 (experience_id, title, start_date, end_date, description, address, job_position, job_type, sort_order)
@@ -81,7 +81,7 @@ impl PositionRepository for PositionRepositoryImpl {
         Ok(row)
     }
 
-    async fn update(&self, id: i32, input: PositionCommand) -> Result<Option<PositionRow>> {
+    async fn update_async(&self, id: i32, input: PositionCommand) -> Result<Option<PositionRow>> {
         let row = sqlx::query_as::<_, PositionRow>(
             "UPDATE positions
              SET experience_id = $2, title = $3, start_date = $4, end_date = $5,
@@ -105,7 +105,7 @@ impl PositionRepository for PositionRepositoryImpl {
         Ok(row)
     }
 
-    async fn delete(&self, id: i32) -> Result<bool> {
+    async fn delete_async(&self, id: i32) -> Result<bool> {
         let result = sqlx::query("DELETE FROM positions WHERE id = $1")
             .bind(id)
             .execute(&self.pool)

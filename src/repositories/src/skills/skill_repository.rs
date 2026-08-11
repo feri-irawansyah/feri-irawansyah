@@ -15,7 +15,7 @@ impl SkillRepositoryImpl {
 
 #[async_trait]
 impl SkillRepository for SkillRepositoryImpl {
-    async fn find_all(&self) -> Result<Vec<SkillView>> {
+    async fn find_all_async(&self) -> Result<Vec<SkillView>> {
         let rows = sqlx::query_as::<_, SkillView>(
             "SELECT skill_id, title, description, url_docs, image_src, progress, star, last_update
              FROM skills ORDER BY last_update",
@@ -25,7 +25,7 @@ impl SkillRepository for SkillRepositoryImpl {
         Ok(rows)
     }
 
-    async fn find_page(&self, page: i64, per_page: i64) -> Result<(Vec<SkillView>, i64)> {
+    async fn find_page_async(&self, page: i64, per_page: i64) -> Result<(Vec<SkillView>, i64)> {
         let total: i64 = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM skills")
             .fetch_one(&self.pool)
             .await?;
@@ -42,7 +42,7 @@ impl SkillRepository for SkillRepositoryImpl {
         Ok((rows, total))
     }
 
-    async fn find_by_id(&self, skill_id: i32) -> Result<Option<SkillView>> {
+    async fn find_by_id_async(&self, skill_id: i32) -> Result<Option<SkillView>> {
         let row = sqlx::query_as::<_, SkillView>(
             "SELECT skill_id, title, description, url_docs, image_src, progress, star, last_update
              FROM skills WHERE skill_id = $1",
@@ -53,7 +53,7 @@ impl SkillRepository for SkillRepositoryImpl {
         Ok(row)
     }
 
-    async fn create(&self, input: SkillCommand) -> Result<SkillView> {
+    async fn create_async(&self, input: SkillCommand) -> Result<SkillView> {
         let row = sqlx::query_as::<_, SkillView>(
             "INSERT INTO skills (title, description, url_docs, image_src, progress, star)
              VALUES ($1, $2, $3, $4, $5, $6)
@@ -70,7 +70,7 @@ impl SkillRepository for SkillRepositoryImpl {
         Ok(row)
     }
 
-    async fn update(&self, skill_id: i32, input: SkillCommand) -> Result<Option<SkillView>> {
+    async fn update_async(&self, skill_id: i32, input: SkillCommand) -> Result<Option<SkillView>> {
         let row = sqlx::query_as::<_, SkillView>(
             "UPDATE skills
              SET title = $2, description = $3, url_docs = $4, image_src = $5,
@@ -90,7 +90,7 @@ impl SkillRepository for SkillRepositoryImpl {
         Ok(row)
     }
 
-    async fn delete(&self, skill_id: i32) -> Result<bool> {
+    async fn delete_async(&self, skill_id: i32) -> Result<bool> {
         let result = sqlx::query("DELETE FROM skills WHERE skill_id = $1")
             .bind(skill_id)
             .execute(&self.pool)

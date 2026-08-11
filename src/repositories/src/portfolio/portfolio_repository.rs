@@ -15,7 +15,7 @@ impl PortfolioRepositoryImpl {
 
 #[async_trait]
 impl PortfolioRepository for PortfolioRepositoryImpl {
-    async fn find_all(&self) -> Result<Vec<PortfolioView>> {
+    async fn find_all_async(&self) -> Result<Vec<PortfolioView>> {
         let rows = sqlx::query_as::<_, PortfolioView>(
             "SELECT portfolio_id, title, slug, description, url_docs, image_src,
                     tech, pined, sort_order, details, last_update
@@ -26,7 +26,7 @@ impl PortfolioRepository for PortfolioRepositoryImpl {
         Ok(rows)
     }
 
-    async fn find_page(&self, page: i64, per_page: i64) -> Result<(Vec<PortfolioView>, i64)> {
+    async fn find_page_async(&self, page: i64, per_page: i64) -> Result<(Vec<PortfolioView>, i64)> {
         let total: i64 = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM portfolio")
             .fetch_one(&self.pool)
             .await?;
@@ -44,7 +44,7 @@ impl PortfolioRepository for PortfolioRepositoryImpl {
         Ok((rows, total))
     }
 
-    async fn find_featured(&self) -> Result<Vec<PortfolioView>> {
+    async fn find_featured_async(&self) -> Result<Vec<PortfolioView>> {
         let rows = sqlx::query_as::<_, PortfolioView>(
             "SELECT portfolio_id, title, slug, description, url_docs, image_src,
                     tech, pined, sort_order, details, last_update
@@ -55,7 +55,7 @@ impl PortfolioRepository for PortfolioRepositoryImpl {
         Ok(rows)
     }
 
-    async fn find_by_slug(&self, slug: &str) -> Result<Option<PortfolioView>> {
+    async fn find_by_slug_async(&self, slug: &str) -> Result<Option<PortfolioView>> {
         let row = sqlx::query_as::<_, PortfolioView>(
             "SELECT portfolio_id, title, slug, description, url_docs, image_src,
                     tech, pined, sort_order, details, last_update
@@ -67,7 +67,7 @@ impl PortfolioRepository for PortfolioRepositoryImpl {
         Ok(row)
     }
 
-    async fn create(&self, input: PortfolioCommand) -> Result<PortfolioView> {
+    async fn create_async(&self, input: PortfolioCommand) -> Result<PortfolioView> {
         let row = sqlx::query_as::<_, PortfolioView>(
             "INSERT INTO portfolio
                 (title, slug, description, url_docs, image_src, tech, pined, sort_order, details)
@@ -89,7 +89,7 @@ impl PortfolioRepository for PortfolioRepositoryImpl {
         Ok(row)
     }
 
-    async fn update(&self, id: i32, input: PortfolioCommand) -> Result<Option<PortfolioView>> {
+    async fn update_async(&self, id: i32, input: PortfolioCommand) -> Result<Option<PortfolioView>> {
         let row = sqlx::query_as::<_, PortfolioView>(
             "UPDATE portfolio
              SET title = $2, slug = $3, description = $4, url_docs = $5, image_src = $6,
@@ -113,7 +113,7 @@ impl PortfolioRepository for PortfolioRepositoryImpl {
         Ok(row)
     }
 
-    async fn delete(&self, id: i32) -> Result<bool> {
+    async fn delete_async(&self, id: i32) -> Result<bool> {
         let result = sqlx::query("DELETE FROM portfolio WHERE portfolio_id = $1")
             .bind(id)
             .execute(&self.pool)

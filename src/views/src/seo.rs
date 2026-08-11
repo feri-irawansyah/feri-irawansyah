@@ -4,9 +4,6 @@ use leptos_meta::{Link, Meta, Title};
 pub const SITE_URL: &str = "https://feri-irawansyah.my.id";
 pub const SITE_NAME: &str = "Feri Irawansyah";
 
-/// Renders the full per-page SEO tag set: title, description, canonical link,
-/// Open Graph, and Twitter Card tags. Nested inside a route, it overrides the
-/// site-wide defaults set in `<App>` for that route only.
 #[allow(non_snake_case)]
 #[component]
 pub fn Seo(

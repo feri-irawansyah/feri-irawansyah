@@ -19,31 +19,31 @@ impl PortfolioServiceImpl {
 
 #[async_trait]
 impl PortfolioService for PortfolioServiceImpl {
-    async fn list(&self) -> Result<Vec<PortfolioView>> {
-        self.repo.find_all().await
+    async fn find_all_async(&self) -> Result<Vec<PortfolioView>> {
+        self.repo.find_all_async().await
     }
 
-    async fn list_page(&self, page: i64, per_page: i64) -> Result<(Vec<PortfolioView>, i64)> {
-        self.repo.find_page(page, per_page).await
+    async fn find_page_async(&self, page: i64, per_page: i64) -> Result<(Vec<PortfolioView>, i64)> {
+        self.repo.find_page_async(page, per_page).await
     }
 
-    async fn featured(&self) -> Result<Vec<PortfolioView>> {
-        self.repo.find_featured().await
+    async fn find_featured_async(&self) -> Result<Vec<PortfolioView>> {
+        self.repo.find_featured_async().await
     }
 
-    async fn get_by_slug(&self, slug: &str) -> Result<Option<PortfolioView>> {
-        self.repo.find_by_slug(slug).await
+    async fn find_by_slug_async(&self, slug: &str) -> Result<Option<PortfolioView>> {
+        self.repo.find_by_slug_async(slug).await
     }
 
-    async fn create(&self, input: PortfolioCommand) -> Result<PortfolioView> {
-        self.repo.create(input).await
+    async fn create_async(&self, input: PortfolioCommand) -> Result<PortfolioView> {
+        self.repo.create_async(input).await
     }
 
-    async fn update(&self, id: i32, input: PortfolioCommand) -> Result<Option<PortfolioView>> {
-        self.repo.update(id, input).await
+    async fn update_async(&self, id: i32, input: PortfolioCommand) -> Result<Option<PortfolioView>> {
+        self.repo.update_async(id, input).await
     }
 
-    async fn delete(&self, id: i32) -> Result<bool> {
-        self.repo.delete(id).await
+    async fn delete_async(&self, id: i32) -> Result<bool> {
+        self.repo.delete_async(id).await
     }
 }

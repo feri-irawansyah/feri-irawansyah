@@ -5,22 +5,16 @@ use crate::notes::note_view::NoteView;
 
 #[async_trait]
 pub trait NoteRepository: Send + Sync {
-    async fn find_all(&self) -> Result<Vec<NoteView>>;
-    async fn find_recent(&self, limit: i64) -> Result<Vec<NoteView>>;
-    async fn find_by_slug(&self, slug: &str) -> Result<Option<NoteView>>;
-    async fn find_by_category(&self, category: &str) -> Result<Vec<NoteView>>;
-    async fn find_paginated(&self, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)>;
-    /// Full-text search over `title`/`description`/`hashtag`/`category` (the
-    /// `tsv` generated column). `content` is deliberately not indexed — it's
-    /// a pointer to an externally-hosted markdown file, not the article
-    /// text. Only enabled notes are matched, ranked by relevance.
-    async fn search(&self, query: &str, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)>;
-    /// Every note regardless of category/enabled — for the admin listing.
-    /// Deliberately separate from `find_all`, which filters for the public feed.
-    async fn find_all_admin(&self) -> Result<Vec<NoteView>>;
-    async fn find_all_admin_page(&self, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)>;
-    async fn create(&self, input: NoteCommand) -> Result<NoteView>;
-    async fn update(&self, id: i32, input: NoteCommand) -> Result<Option<NoteView>>;
-    async fn toggle_enabled(&self, id: i32, enabled: bool) -> Result<bool>;
-    async fn delete(&self, id: i32) -> Result<bool>;
+    async fn find_all_async(&self) -> Result<Vec<NoteView>>;
+    async fn find_recent_async(&self, limit: i64) -> Result<Vec<NoteView>>;
+    async fn find_by_slug_async(&self, slug: &str) -> Result<Option<NoteView>>;
+    async fn find_by_category_async(&self, category: &str) -> Result<Vec<NoteView>>;
+    async fn find_paginated_async(&self, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)>;
+    async fn search_async(&self, query: &str, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)>;
+    async fn find_all_admin_async(&self) -> Result<Vec<NoteView>>;
+    async fn find_all_admin_page_async(&self, page: i64, per_page: i64) -> Result<(Vec<NoteView>, i64)>;
+    async fn create_async(&self, input: NoteCommand) -> Result<NoteView>;
+    async fn update_async(&self, id: i32, input: NoteCommand) -> Result<Option<NoteView>>;
+    async fn toggle_enabled_async(&self, id: i32, enabled: bool) -> Result<bool>;
+    async fn delete_async(&self, id: i32) -> Result<bool>;
 }

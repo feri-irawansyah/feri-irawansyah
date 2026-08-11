@@ -25,7 +25,7 @@ pub async fn admin_list_skills_page(page: i64) -> Result<(Vec<SkillView>, i64), 
     crate::pages::admin::require_admin().await?;
     skill_svc()
         .await?
-        .list_page(page, 10)
+        .find_page_async(page, 10)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -38,7 +38,7 @@ pub async fn admin_create_skill(
     input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
     skill_svc()
         .await?
-        .create(input)
+        .create_async(input)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -52,7 +52,7 @@ pub async fn admin_update_skill(
     input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
     skill_svc()
         .await?
-        .update(skill_id, input)
+        .update_async(skill_id, input)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -62,7 +62,7 @@ pub async fn admin_delete_skill(skill_id: i32) -> Result<bool, ServerFnError> {
     crate::pages::admin::require_admin().await?;
     skill_svc()
         .await?
-        .delete(skill_id)
+        .delete_async(skill_id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }

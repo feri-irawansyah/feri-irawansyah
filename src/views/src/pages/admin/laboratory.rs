@@ -38,7 +38,7 @@ pub async fn admin_list_laboratory_page(
     crate::pages::admin::require_admin().await?;
     laboratory_svc()
         .await?
-        .list_admin_page(page, 10)
+        .find_all_admin_page_async(page, 10)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -51,7 +51,7 @@ pub async fn admin_create_laboratory(
     input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
     laboratory_svc()
         .await?
-        .create(input)
+        .create_async(input)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -65,7 +65,7 @@ pub async fn admin_update_laboratory(
     input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
     laboratory_svc()
         .await?
-        .update(id, input)
+        .update_async(id, input)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -75,7 +75,7 @@ pub async fn admin_delete_laboratory(id: i32) -> Result<bool, ServerFnError> {
     crate::pages::admin::require_admin().await?;
     laboratory_svc()
         .await?
-        .delete(id)
+        .delete_async(id)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }

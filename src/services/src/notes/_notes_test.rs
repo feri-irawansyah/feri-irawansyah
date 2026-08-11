@@ -29,7 +29,7 @@ impl MockNoteRepo {
 
 #[async_trait::async_trait]
 impl NoteRepository for MockNoteRepo {
-    async fn find_all(&self) -> anyhow::Result<Vec<NoteView>> {
+    async fn find_all_async(&self) -> anyhow::Result<Vec<NoteView>> {
         Ok(self
             .notes
             .lock()
@@ -40,7 +40,7 @@ impl NoteRepository for MockNoteRepo {
             .collect())
     }
 
-    async fn find_recent(&self, limit: i64) -> anyhow::Result<Vec<NoteView>> {
+    async fn find_recent_async(&self, limit: i64) -> anyhow::Result<Vec<NoteView>> {
         Ok(self
             .notes
             .lock()
@@ -53,7 +53,7 @@ impl NoteRepository for MockNoteRepo {
             .collect())
     }
 
-    async fn find_by_slug(&self, slug: &str) -> anyhow::Result<Option<NoteView>> {
+    async fn find_by_slug_async(&self, slug: &str) -> anyhow::Result<Option<NoteView>> {
         Ok(self
             .notes
             .lock()
@@ -63,7 +63,7 @@ impl NoteRepository for MockNoteRepo {
             .cloned())
     }
 
-    async fn find_by_category(&self, category: &str) -> anyhow::Result<Vec<NoteView>> {
+    async fn find_by_category_async(&self, category: &str) -> anyhow::Result<Vec<NoteView>> {
         Ok(self
             .notes
             .lock()
@@ -74,7 +74,7 @@ impl NoteRepository for MockNoteRepo {
             .collect())
     }
 
-    async fn find_paginated(
+    async fn find_paginated_async(
         &self,
         page: i64,
         per_page: i64,
@@ -97,7 +97,7 @@ impl NoteRepository for MockNoteRepo {
         Ok((items, total))
     }
 
-    async fn search(
+    async fn search_async(
         &self,
         query: &str,
         page: i64,
@@ -131,11 +131,11 @@ impl NoteRepository for MockNoteRepo {
         Ok((items, total))
     }
 
-    async fn find_all_admin(&self) -> anyhow::Result<Vec<NoteView>> {
+    async fn find_all_admin_async(&self) -> anyhow::Result<Vec<NoteView>> {
         Ok(self.notes.lock().unwrap().clone())
     }
 
-    async fn find_all_admin_page(
+    async fn find_all_admin_page_async(
         &self,
         page: i64,
         per_page: i64,
@@ -151,7 +151,7 @@ impl NoteRepository for MockNoteRepo {
         Ok((items, total))
     }
 
-    async fn create(&self, input: NoteCommand) -> anyhow::Result<NoteView> {
+    async fn create_async(&self, input: NoteCommand) -> anyhow::Result<NoteView> {
         let mut id_lock = self.next_id.lock().unwrap();
         let id = *id_lock;
         *id_lock += 1;
@@ -171,7 +171,7 @@ impl NoteRepository for MockNoteRepo {
         Ok(note)
     }
 
-    async fn update(&self, id: i32, input: NoteCommand) -> anyhow::Result<Option<NoteView>> {
+    async fn update_async(&self, id: i32, input: NoteCommand) -> anyhow::Result<Option<NoteView>> {
         let mut notes = self.notes.lock().unwrap();
         if let Some(note) = notes.iter_mut().find(|n| n.notes_id == id) {
             note.title = input.title;
@@ -187,14 +187,14 @@ impl NoteRepository for MockNoteRepo {
         }
     }
 
-    async fn delete(&self, id: i32) -> anyhow::Result<bool> {
+    async fn delete_async(&self, id: i32) -> anyhow::Result<bool> {
         let mut notes = self.notes.lock().unwrap();
         let before = notes.len();
         notes.retain(|n| n.notes_id != id);
         Ok(notes.len() < before)
     }
 
-    async fn toggle_enabled(&self, id: i32, enabled: bool) -> anyhow::Result<bool> {
+    async fn toggle_enabled_async(&self, id: i32, enabled: bool) -> anyhow::Result<bool> {
         let mut notes = self.notes.lock().unwrap();
         if let Some(note) = notes.iter_mut().find(|n| n.notes_id == id) {
             note.enabled = enabled;
@@ -251,7 +251,7 @@ async fn list_returns_only_enabled() {
         make_note(2, "disabled-note", "rust", false),
     ];
     let svc = make_svc(MockNoteRepo::new(notes));
-    let result = svc.list().await.unwrap();
+    let result = svc.list_async().await.unwrap();
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].slug, "enabled-note");
 }
@@ -264,7 +264,7 @@ async fn recent_respects_limit() {
         .map(|i| make_note(i, &format!("note-{i}"), "rust", true))
         .collect();
     let svc = make_svc(MockNoteRepo::new(notes));
-    let result = svc.recent(3).await.unwrap();
+    let result = svc.recent_async(3).await.unwrap();
     assert_eq!(result.len(), 3);
 }
 
@@ -275,7 +275,7 @@ async fn recent_excludes_disabled() {
         make_note(2, "priv", "rust", false),
     ];
     let svc = make_svc(MockNoteRepo::new(notes));
-    let result = svc.recent(10).await.unwrap();
+    let result = svc.recent_async(10).await.unwrap();
     assert!(result.iter().all(|n| n.enabled));
 }
 
@@ -285,7 +285,7 @@ async fn recent_excludes_disabled() {
 async fn get_by_slug_found() {
     let notes = vec![make_note(1, "my-post", "rust", true)];
     let svc = make_svc(MockNoteRepo::new(notes));
-    let result = svc.get_by_slug("my-post").await.unwrap();
+    let result = svc.get_by_slug_async("my-post").await.unwrap();
     assert!(result.is_some());
     assert_eq!(result.unwrap().slug, "my-post");
 }
@@ -293,7 +293,7 @@ async fn get_by_slug_found() {
 #[tokio::test]
 async fn get_by_slug_not_found() {
     let svc = make_svc(MockNoteRepo::empty());
-    assert!(svc.get_by_slug("nope").await.unwrap().is_none());
+    assert!(svc.get_by_slug_async("nope").await.unwrap().is_none());
 }
 
 // ── by_category ───────────────────────────────────────────────────────────────
@@ -306,7 +306,7 @@ async fn by_category_filters_correctly() {
         make_note(3, "another-rust", "rust", true),
     ];
     let svc = make_svc(MockNoteRepo::new(notes));
-    let result = svc.by_category("rust").await.unwrap();
+    let result = svc.by_category_async("rust").await.unwrap();
     assert_eq!(result.len(), 2);
     assert!(result.iter().all(|n| n.category == "rust"));
 }
@@ -320,7 +320,7 @@ async fn search_matches_title() {
         make_note(2, "go-channels", "go", true),
     ];
     let svc = make_svc(MockNoteRepo::new(notes));
-    let (result, total) = svc.search("Note 1", 1, 10).await.unwrap();
+    let (result, total) = svc.search_async("Note 1", 1, 10).await.unwrap();
     assert_eq!(total, 1);
     assert_eq!(result[0].slug, "rust-async");
 }
@@ -328,7 +328,7 @@ async fn search_matches_title() {
 #[tokio::test]
 async fn search_blank_query_returns_empty_without_hitting_repo() {
     let svc = make_svc(MockNoteRepo::empty());
-    let (result, total) = svc.search("   ", 1, 10).await.unwrap();
+    let (result, total) = svc.search_async("   ", 1, 10).await.unwrap();
     assert!(result.is_empty());
     assert_eq!(total, 0);
 }
@@ -340,7 +340,7 @@ async fn search_excludes_disabled_notes() {
         make_note(2, "hidden", "rust", false),
     ];
     let svc = make_svc(MockNoteRepo::new(notes));
-    let (result, _) = svc.search("Note", 1, 10).await.unwrap();
+    let (result, _) = svc.search_async("Note", 1, 10).await.unwrap();
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].slug, "visible");
 }
@@ -351,7 +351,7 @@ async fn search_paginates_results() {
         .map(|i| make_note(i, &format!("note-{i}"), "rust", true))
         .collect();
     let svc = make_svc(MockNoteRepo::new(notes));
-    let (page1, total) = svc.search("Note", 1, 2).await.unwrap();
+    let (page1, total) = svc.search_async("Note", 1, 2).await.unwrap();
     assert_eq!(total, 5);
     assert_eq!(page1.len(), 2);
 }
@@ -362,7 +362,7 @@ async fn search_paginates_results() {
 async fn create_stores_and_returns_note() {
     let svc = make_svc(MockNoteRepo::empty());
     let cmd = make_cmd("new-post", "rust");
-    let result = svc.create(cmd).await.unwrap();
+    let result = svc.create_async(cmd).await.unwrap();
     assert_eq!(result.slug, "new-post");
     assert_eq!(result.category, "rust");
     assert_eq!(result.hashtag, vec!["rust"]);
@@ -377,7 +377,7 @@ async fn update_modifies_existing_note() {
     let svc = make_svc(MockNoteRepo::new(notes));
     let mut cmd = make_cmd("new-slug", "leptos");
     cmd.title = "Updated Title".to_string();
-    let result = svc.update(1, cmd).await.unwrap();
+    let result = svc.update_async(1, cmd).await.unwrap();
     assert!(result.is_some());
     let updated = result.unwrap();
     assert_eq!(updated.slug, "new-slug");
@@ -387,7 +387,7 @@ async fn update_modifies_existing_note() {
 #[tokio::test]
 async fn update_returns_none_for_missing_id() {
     let svc = make_svc(MockNoteRepo::empty());
-    let result = svc.update(99, make_cmd("slug", "rust")).await.unwrap();
+    let result = svc.update_async(99, make_cmd("slug", "rust")).await.unwrap();
     assert!(result.is_none());
 }
 
@@ -397,14 +397,14 @@ async fn update_returns_none_for_missing_id() {
 async fn delete_existing_returns_true() {
     let notes = vec![make_note(1, "to-delete", "rust", true)];
     let svc = make_svc(MockNoteRepo::new(notes));
-    assert!(svc.delete(1).await.unwrap());
-    assert!(svc.list().await.unwrap().is_empty());
+    assert!(svc.delete_async(1).await.unwrap());
+    assert!(svc.list_async().await.unwrap().is_empty());
 }
 
 #[tokio::test]
 async fn delete_missing_returns_false() {
     let svc = make_svc(MockNoteRepo::empty());
-    assert!(!svc.delete(99).await.unwrap());
+    assert!(!svc.delete_async(99).await.unwrap());
 }
 
 // ── list_page ─────────────────────────────────────────────────────────────────
@@ -415,9 +415,9 @@ async fn list_page_paginates_correctly() {
         .map(|i| make_note(i, &format!("note-{i}"), "rust", true))
         .collect();
     let svc = make_svc(MockNoteRepo::new(notes));
-    let (page1, total) = svc.list_page(1, 4).await.unwrap();
+    let (page1, total) = svc.list_page_async(1, 4).await.unwrap();
     assert_eq!(total, 10);
     assert_eq!(page1.len(), 4);
-    let (page3, _) = svc.list_page(3, 4).await.unwrap();
+    let (page3, _) = svc.list_page_async(3, 4).await.unwrap();
     assert_eq!(page3.len(), 2);
 }

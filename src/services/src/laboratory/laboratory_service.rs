@@ -19,42 +19,42 @@ impl LaboratoryServiceImpl {
 
 #[async_trait]
 impl LaboratoryService for LaboratoryServiceImpl {
-    async fn get_by_slug(&self, slug: &str) -> Result<Option<LaboratoryView>> {
-        self.repo.find_by_slug(slug).await
+    async fn find_by_slug_async(&self, slug: &str) -> Result<Option<LaboratoryView>> {
+        self.repo.find_by_slug_async(slug).await
     }
 
-    async fn by_category_page(
+    async fn find_by_category_page_async(
         &self,
         category: &str,
         page: i64,
         per_page: i64,
     ) -> Result<(Vec<LaboratoryView>, i64)> {
         self.repo
-            .find_by_category_page(category, page, per_page)
+            .find_by_category_page_async(category, page, per_page)
             .await
     }
 
-    async fn list_admin(&self) -> Result<Vec<LaboratoryView>> {
-        self.repo.find_all_admin().await
+    async fn find_all_admin_async(&self) -> Result<Vec<LaboratoryView>> {
+        self.repo.find_all_admin_async().await
     }
 
-    async fn list_admin_page(
+    async fn find_all_admin_page_async(
         &self,
         page: i64,
         per_page: i64,
     ) -> Result<(Vec<LaboratoryView>, i64)> {
-        self.repo.find_all_admin_page(page, per_page).await
+        self.repo.find_all_admin_page_async(page, per_page).await
     }
 
-    async fn create(&self, input: LaboratoryCommand) -> Result<LaboratoryView> {
-        self.repo.create(input).await
+    async fn create_async(&self, input: LaboratoryCommand) -> Result<LaboratoryView> {
+        self.repo.create_async(input).await
     }
 
-    async fn update(&self, id: i32, input: LaboratoryCommand) -> Result<Option<LaboratoryView>> {
-        self.repo.update(id, input).await
+    async fn update_async(&self, id: i32, input: LaboratoryCommand) -> Result<Option<LaboratoryView>> {
+        self.repo.update_async(id, input).await
     }
 
-    async fn delete(&self, id: i32) -> Result<bool> {
-        self.repo.delete(id).await
+    async fn delete_async(&self, id: i32) -> Result<bool> {
+        self.repo.delete_async(id).await
     }
 }

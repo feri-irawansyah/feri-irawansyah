@@ -20,7 +20,7 @@ async fn portfolio_svc()
 pub async fn get_all_portfolio() -> Result<Vec<PortfolioView>, ServerFnError> {
     portfolio_svc()
         .await?
-        .list()
+        .find_all_async()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }

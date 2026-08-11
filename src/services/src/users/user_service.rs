@@ -23,7 +23,7 @@ impl UserServiceImpl {
 
 #[async_trait]
 impl UserService for UserServiceImpl {
-    async fn create(
+    async fn create_async(
         &self,
         email: &str,
         password: &str,
@@ -36,20 +36,20 @@ impl UserService for UserServiceImpl {
             .map_err(|e| anyhow!("Hash error: {e}"))?
             .to_string();
         self.repo
-            .create(email, &hash, fullname, client_category)
+            .create_async(email, &hash, fullname, client_category)
             .await
     }
 
-    async fn find_by_id(&self, id: i32) -> Result<Option<UserView>> {
-        self.repo.find_by_id(id).await
+    async fn find_by_id_async(&self, id: i32) -> Result<Option<UserView>> {
+        self.repo.find_by_id_async(id).await
     }
 
-    async fn find_by_email(&self, email: &str) -> Result<Option<UserView>> {
-        self.repo.find_by_email(email).await
+    async fn find_by_email_async(&self, email: &str) -> Result<Option<UserView>> {
+        self.repo.find_by_email_async(email).await
     }
 
-    async fn list(&self, limit: i64, offset: i64) -> Result<Vec<UserView>> {
-        self.repo.list(limit, offset).await
+    async fn find_all_async(&self, limit: i64, offset: i64) -> Result<Vec<UserView>> {
+        self.repo.find_all_async(limit, offset).await
     }
 }
 

@@ -6,9 +6,6 @@ use leptos::prelude::*;
 use leptos_meta::Meta;
 use leptos_router::hooks::use_params_map;
 
-/// Presentational only — journey content itself lives in the `notes` table
-/// (category = "journey") so it can be edited by pushing to GitHub, same as
-/// other notes. The icon per story rarely changes, so it's fine to keep here.
 pub fn icon_for_slug(slug: &str) -> &'static str {
     match slug {
         "background" => "bi-house-heart-fill",

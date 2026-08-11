@@ -15,7 +15,7 @@ impl ExperienceRepositoryImpl {
 
 #[async_trait]
 impl ExperienceRepository for ExperienceRepositoryImpl {
-    async fn find_all(&self) -> Result<Vec<ExperienceView>> {
+    async fn find_all_async(&self) -> Result<Vec<ExperienceView>> {
         let rows = sqlx::query_as::<_, ExperienceView>(
             "SELECT id, title, company, url_docs, image_src, start_date, end_date, last_update
              FROM experience
@@ -26,7 +26,7 @@ impl ExperienceRepository for ExperienceRepositoryImpl {
         Ok(rows)
     }
 
-    async fn find_page(&self, page: i64, per_page: i64) -> Result<(Vec<ExperienceView>, i64)> {
+    async fn find_page_async(&self, page: i64, per_page: i64) -> Result<(Vec<ExperienceView>, i64)> {
         let total: i64 = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM experience")
             .fetch_one(&self.pool)
             .await?;
@@ -44,7 +44,7 @@ impl ExperienceRepository for ExperienceRepositoryImpl {
         Ok((rows, total))
     }
 
-    async fn find_by_ids(&self, ids: &[i32]) -> Result<Vec<ExperienceView>> {
+    async fn find_by_ids_async(&self, ids: &[i32]) -> Result<Vec<ExperienceView>> {
         let rows = sqlx::query_as::<_, ExperienceView>(
             "SELECT id, title, company, url_docs, image_src, start_date, end_date, last_update
              FROM experience
@@ -56,7 +56,7 @@ impl ExperienceRepository for ExperienceRepositoryImpl {
         Ok(rows)
     }
 
-    async fn create(&self, input: ExperienceCommand) -> Result<ExperienceView> {
+    async fn create_async(&self, input: ExperienceCommand) -> Result<ExperienceView> {
         let row = sqlx::query_as::<_, ExperienceView>(
             "INSERT INTO experience (title, company, url_docs, image_src, start_date, end_date)
              VALUES ($1, $2, $3, $4, $5, $6)
@@ -73,7 +73,7 @@ impl ExperienceRepository for ExperienceRepositoryImpl {
         Ok(row)
     }
 
-    async fn update(&self, id: i32, input: ExperienceCommand) -> Result<Option<ExperienceView>> {
+    async fn update_async(&self, id: i32, input: ExperienceCommand) -> Result<Option<ExperienceView>> {
         let row = sqlx::query_as::<_, ExperienceView>(
             "UPDATE experience
              SET title = $2, company = $3, url_docs = $4, image_src = $5,
@@ -93,7 +93,7 @@ impl ExperienceRepository for ExperienceRepositoryImpl {
         Ok(row)
     }
 
-    async fn delete(&self, id: i32) -> Result<bool> {
+    async fn delete_async(&self, id: i32) -> Result<bool> {
         let result = sqlx::query("DELETE FROM experience WHERE id = $1")
             .bind(id)
             .execute(&self.pool)

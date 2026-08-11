@@ -25,7 +25,7 @@ pub async fn get_users(offset: i64) -> Result<Vec<UserTableRow>, ServerFnError> 
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let users = user_svc
-        .list(20, offset)
+        .find_all_async(20, offset)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 

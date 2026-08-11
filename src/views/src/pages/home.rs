@@ -30,7 +30,7 @@ async fn skill_svc() -> Result<std::sync::Arc<dyn modules::skills::SkillService>
 pub async fn get_recent_notes() -> Result<Vec<NoteView>, ServerFnError> {
     note_svc()
         .await?
-        .recent(6)
+        .recent_async(6)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -39,7 +39,7 @@ pub async fn get_recent_notes() -> Result<Vec<NoteView>, ServerFnError> {
 pub async fn get_skills() -> Result<Vec<SkillView>, ServerFnError> {
     skill_svc()
         .await?
-        .list()
+        .find_all_async()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }

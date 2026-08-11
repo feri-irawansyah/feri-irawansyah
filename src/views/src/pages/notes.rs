@@ -52,7 +52,7 @@ pub async fn fetch_markdown_html(
 pub async fn get_notes_page(page: i64) -> Result<(Vec<NoteView>, i64), ServerFnError> {
     note_svc()
         .await?
-        .list_page(page, 8)
+        .find_page_async(page, 8)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -61,7 +61,7 @@ pub async fn get_notes_page(page: i64) -> Result<(Vec<NoteView>, i64), ServerFnE
 pub async fn get_note_by_slug(slug: String) -> Result<Option<NoteView>, ServerFnError> {
     note_svc()
         .await?
-        .get_by_slug(&slug)
+        .find_by_slug_async(&slug)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -70,7 +70,7 @@ pub async fn get_note_by_slug(slug: String) -> Result<Option<NoteView>, ServerFn
 pub async fn get_notes_by_category(category: String) -> Result<Vec<NoteView>, ServerFnError> {
     note_svc()
         .await?
-        .by_category(&category)
+        .find_by_category_async(&category)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -79,7 +79,7 @@ pub async fn get_notes_by_category(category: String) -> Result<Vec<NoteView>, Se
 pub async fn search_notes(query: String, page: i64) -> Result<(Vec<NoteView>, i64), ServerFnError> {
     note_svc()
         .await?
-        .search(&query, page, 8)
+        .search_async(&query, page, 8)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
