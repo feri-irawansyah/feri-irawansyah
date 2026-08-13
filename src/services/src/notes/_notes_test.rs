@@ -251,7 +251,7 @@ async fn list_returns_only_enabled() {
         make_note(2, "disabled-note", "rust", false),
     ];
     let svc = make_svc(MockNoteRepo::new(notes));
-    let result = svc.list_async().await.unwrap();
+    let result = svc.find_all_async().await.unwrap();
     assert_eq!(result.len(), 1);
     assert_eq!(result[0].slug, "enabled-note");
 }
@@ -285,7 +285,7 @@ async fn recent_excludes_disabled() {
 async fn get_by_slug_found() {
     let notes = vec![make_note(1, "my-post", "rust", true)];
     let svc = make_svc(MockNoteRepo::new(notes));
-    let result = svc.get_by_slug_async("my-post").await.unwrap();
+    let result = svc.find_by_slug_async("my-post").await.unwrap();
     assert!(result.is_some());
     assert_eq!(result.unwrap().slug, "my-post");
 }
@@ -293,7 +293,7 @@ async fn get_by_slug_found() {
 #[tokio::test]
 async fn get_by_slug_not_found() {
     let svc = make_svc(MockNoteRepo::empty());
-    assert!(svc.get_by_slug_async("nope").await.unwrap().is_none());
+    assert!(svc.find_by_slug_async("nope").await.unwrap().is_none());
 }
 
 // ── by_category ───────────────────────────────────────────────────────────────
@@ -306,7 +306,7 @@ async fn by_category_filters_correctly() {
         make_note(3, "another-rust", "rust", true),
     ];
     let svc = make_svc(MockNoteRepo::new(notes));
-    let result = svc.by_category_async("rust").await.unwrap();
+    let result = svc.find_by_category_async("rust").await.unwrap();
     assert_eq!(result.len(), 2);
     assert!(result.iter().all(|n| n.category == "rust"));
 }
@@ -387,7 +387,10 @@ async fn update_modifies_existing_note() {
 #[tokio::test]
 async fn update_returns_none_for_missing_id() {
     let svc = make_svc(MockNoteRepo::empty());
-    let result = svc.update_async(99, make_cmd("slug", "rust")).await.unwrap();
+    let result = svc
+        .update_async(99, make_cmd("slug", "rust"))
+        .await
+        .unwrap();
     assert!(result.is_none());
 }
 
@@ -398,7 +401,7 @@ async fn delete_existing_returns_true() {
     let notes = vec![make_note(1, "to-delete", "rust", true)];
     let svc = make_svc(MockNoteRepo::new(notes));
     assert!(svc.delete_async(1).await.unwrap());
-    assert!(svc.list_async().await.unwrap().is_empty());
+    assert!(svc.find_all_async().await.unwrap().is_empty());
 }
 
 #[tokio::test]
@@ -415,9 +418,9 @@ async fn list_page_paginates_correctly() {
         .map(|i| make_note(i, &format!("note-{i}"), "rust", true))
         .collect();
     let svc = make_svc(MockNoteRepo::new(notes));
-    let (page1, total) = svc.list_page_async(1, 4).await.unwrap();
+    let (page1, total) = svc.find_page_async(1, 4).await.unwrap();
     assert_eq!(total, 10);
     assert_eq!(page1.len(), 4);
-    let (page3, _) = svc.list_page_async(3, 4).await.unwrap();
+    let (page3, _) = svc.find_page_async(3, 4).await.unwrap();
     assert_eq!(page3.len(), 2);
 }

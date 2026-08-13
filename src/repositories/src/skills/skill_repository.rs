@@ -32,7 +32,7 @@ impl SkillRepository for SkillRepositoryImpl {
         let offset = (page - 1).max(0) * per_page;
         let rows = sqlx::query_as::<_, SkillView>(
             "SELECT skill_id, title, description, url_docs, image_src, progress, star, last_update
-             FROM skills ORDER BY last_update DESC
+             FROM skills ORDER BY skill_id DESC
              LIMIT $1 OFFSET $2",
         )
         .bind(per_page)

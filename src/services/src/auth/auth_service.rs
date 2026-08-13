@@ -43,7 +43,7 @@ impl AuthServiceImpl {
     /// every subsequent one. Standard, simpler, and plenty for brute-force
     /// protection on a single admin login.
     fn login_attempt_key(ip: &str) -> String {
-        format!("login-attempts:{ip}")
+        format!("login-attempts:{ip}").to_string()
     }
 
     async fn is_locked(&self, ip: &str) -> bool {
