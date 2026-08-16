@@ -4,7 +4,7 @@
 # + nginx site config + systemd unit + install.sh (server-side setup script).
 #
 # Usage: ./scripts/build.sh
-# Deploy: rsync -avz --exclude 'uploads' dist/ root@VPS:/opt/feri-irawansyah/
+# Deploy: rsync -av --progress --partial --exclude 'uploads' dist/ root@VPS:/opt/feri-irawansyah/
 #         then: ssh root@VPS 'cd /opt/feri-irawansyah && sudo bash install.sh'
 
 set -euo pipefail
@@ -85,5 +85,5 @@ echo "Run it locally with:"
 echo "  cd dist && ./$BIN_NAME"
 echo ""
 echo "Deploy to the VPS:"
-echo "  rsync -avz --exclude 'uploads' dist/ root@VPS_IP:/opt/feri-irawansyah/"
+echo "  rsync -av --progress --partial --exclude 'uploads' dist/ root@VPS_IP:/opt/feri-irawansyah/"
 echo "  ssh root@VPS_IP 'cd /opt/feri-irawansyah && sudo bash install.sh'"

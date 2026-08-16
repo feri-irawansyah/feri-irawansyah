@@ -1,7 +1,8 @@
 # Deploy ke VPS (Debian 13)
 
 Panduan ini asumsi:
-- Build dilakukan **di lokal** (`bash scripts/build.sh`), lalu **seluruh isi folder `dist/` apa adanya** di-upload ke VPS. **Jangan compile di VPS** — VPS kentang ga cukup buat *menjalankan* binary yang sudah jadi, tapi beresiko OOM kalau dipakai buat *compile* (LTO + codegen-units=1 makan RAM banyak saat build).
+
+- Build dilakukan **di lokal** (`bash scripts/build.sh`), lalu **seluruh isi folder `dist/` apa adanya** di-upload ke VPS. **Jangan compile di VPS** — VPS kentang ga cukup buat _menjalankan_ binary yang sudah jadi, tapi beresiko OOM kalau dipakai buat _compile_ (LTO + codegen-units=1 makan RAM banyak saat build).
 - `dist/` sekarang self-contained: binary + site assets + `public/` + `.env` (siap pakai) + **config Nginx, unit systemd, dan `install.sh`** yang otomatis nyetel semuanya di server. Jadi di server tinggal jalanin 1 script, bukan ngetik config manual.
 - Database pakai Postgres cloud (Aiven, lewat `DATABASE_URL` di `.env`) — jadi **tidak perlu install Postgres di VPS ini**.
 - OpenSSL sudah ada di VPS.
@@ -23,6 +24,7 @@ exit
 ```
 
 Kenapa gini:
+
 - **User `feriapp`** — service jalan sebagai user ini, bukan `root`. Kalau ada apa-apa (bug/vuln), kerusakannya kebatasin ke folder ini doang, bukan akses root penuh ke server. `--no-create-home --shell /usr/sbin/nologin` artinya user ini nggak bisa dipakai buat login/SSH, cuma buat jalanin proses.
 - **`/opt/feri-irawansyah`**, bukan `~/feri-irawansyah` (home `root`) — `/root` defaultnya `chmod 700`, jadi user lain kayak `feriapp` nggak akan bisa akses folder itu sama sekali, walau file di dalamnya udah di-`chown`. `/opt` itu lokasi standar Linux (FHS) buat aplikasi self-contained kayak gini. Boleh diganti ke path lain (`/srv/...` misal) asal bukan di dalam `/root` — kalau diganti, sesuaikan juga `APP_DIR` di `scripts/templates/install.sh` dan `WorkingDirectory`/`ExecStart` di `scripts/templates/feri-irawansyah.service`.
 
@@ -33,7 +35,7 @@ Kenapa gini:
 bash scripts/build.sh
 
 # 2. Upload isi dist/ ke folder yang udah disiapin di langkah 0
-rsync -avz --exclude 'uploads' dist/ root@VPS_IP:/opt/feri-irawansyah/
+rsync -av --progress --partial --exclude 'uploads' dist/ root@VPS_IP:/opt/feri-irawansyah/
 
 # 3. Jalanin installer di server (nginx, systemd — sekali jalan)
 ssh root@VPS_IP 'cd /opt/feri-irawansyah && sudo bash install.sh'
@@ -113,7 +115,7 @@ LEPTOS_ENV=PROD
 
 ```bash
 bash scripts/build.sh
-rsync -avz --exclude 'uploads' dist/ root@VPS_IP:/opt/feri-irawansyah/
+rsync -av --progress --partial --exclude 'uploads' dist/ root@VPS_IP:/opt/feri-irawansyah/
 ssh root@VPS_IP 'cd /opt/feri-irawansyah && sudo bash install.sh'
 ```
 
@@ -123,13 +125,13 @@ ssh root@VPS_IP 'cd /opt/feri-irawansyah && sudo bash install.sh'
 
 ## Cheatsheet
 
-| Perintah | Kegunaan |
-|---|---|
-| `sudo systemctl status feri-irawansyah` | Cek status service |
+| Perintah                                 | Kegunaan                                |
+| ---------------------------------------- | --------------------------------------- |
+| `sudo systemctl status feri-irawansyah`  | Cek status service                      |
 | `sudo systemctl restart feri-irawansyah` | Restart manual (tanpa lewat install.sh) |
-| `journalctl -u feri-irawansyah -f` | Lihat log realtime |
-| `sudo nginx -t` | Validasi config Nginx |
-| `sudo systemctl reload nginx` | Apply perubahan config Nginx |
-| `ss -tlnp` | Lihat semua port yang lagi listen |
-| `sudo ufw status verbose` | Cek rule & status firewall |
-| `dig +short feri-irawansyah.my.id` | Cek A record domain ngarah kemana |
+| `journalctl -u feri-irawansyah -f`       | Lihat log realtime                      |
+| `sudo nginx -t`                          | Validasi config Nginx                   |
+| `sudo systemctl reload nginx`            | Apply perubahan config Nginx            |
+| `ss -tlnp`                               | Lihat semua port yang lagi listen       |
+| `sudo ufw status verbose`                | Cek rule & status firewall              |
+| `dig +short feri-irawansyah.my.id`       | Cek A record domain ngarah kemana       |
