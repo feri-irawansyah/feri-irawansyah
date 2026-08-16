@@ -142,3 +142,92 @@ async fn delete_nonexistent_session_is_ok(pool: PgPool) {
     let repo = AuthRepositoryImpl::new(pool);
     assert!(repo.delete_session_by_token("ghost-tok").await.is_ok());
 }
+
+// ── MFA ────────────────────────────────────────────────────────────────────────
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn new_user_has_no_mfa(pool: PgPool) {
+    let id = insert_user(&pool, "nomfa@test.com").await;
+    let repo = AuthRepositoryImpl::new(pool);
+    let user = repo.find_user_by_id(id).await.unwrap().unwrap();
+    assert!(user.mfa_secret.is_none());
+    assert!(user.mfa_enabled.is_none());
+    assert!(user.mfa_recovery_codes.is_none());
+}
+
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn save_mfa_secret_stores_pending_secret_without_enabling(pool: PgPool) {
+    let id = insert_user(&pool, "pending@test.com").await;
+    let repo = AuthRepositoryImpl::new(pool);
+
+    repo.save_mfa_secret(id, "ciphertext").await.unwrap();
+
+    let user = repo.find_user_by_id(id).await.unwrap().unwrap();
+    assert_eq!(user.mfa_secret.as_deref(), Some("ciphertext"));
+    assert!(user.mfa_enabled.is_none());
+}
+
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn enable_mfa_sets_flag_and_recovery_codes(pool: PgPool) {
+    let id = insert_user(&pool, "enable@test.com").await;
+    let repo = AuthRepositoryImpl::new(pool);
+    repo.save_mfa_secret(id, "ciphertext").await.unwrap();
+
+    repo.enable_mfa(id, vec!["hash-a".into(), "hash-b".into()])
+        .await
+        .unwrap();
+
+    let user = repo.find_user_by_id(id).await.unwrap().unwrap();
+    assert_eq!(user.mfa_enabled, Some(true));
+    assert_eq!(
+        user.mfa_recovery_codes,
+        Some(vec!["hash-a".to_string(), "hash-b".to_string()])
+    );
+}
+
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn disable_mfa_clears_everything(pool: PgPool) {
+    let id = insert_user(&pool, "disable@test.com").await;
+    let repo = AuthRepositoryImpl::new(pool);
+    repo.save_mfa_secret(id, "ciphertext").await.unwrap();
+    repo.enable_mfa(id, vec!["hash-a".into()]).await.unwrap();
+
+    repo.disable_mfa(id).await.unwrap();
+
+    let user = repo.find_user_by_id(id).await.unwrap().unwrap();
+    assert!(user.mfa_secret.is_none());
+    assert!(user.mfa_enabled.is_none());
+    assert!(user.mfa_recovery_codes.is_none());
+}
+
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn consume_recovery_code_removes_matching_hash_only(pool: PgPool) {
+    let id = insert_user(&pool, "recovery@test.com").await;
+    let repo = AuthRepositoryImpl::new(pool);
+    repo.save_mfa_secret(id, "ciphertext").await.unwrap();
+    repo.enable_mfa(id, vec!["hash-a".into(), "hash-b".into()])
+        .await
+        .unwrap();
+
+    let consumed = repo.consume_recovery_code(id, "hash-a").await.unwrap();
+    assert!(consumed);
+
+    let user = repo.find_user_by_id(id).await.unwrap().unwrap();
+    assert_eq!(user.mfa_recovery_codes, Some(vec!["hash-b".to_string()]));
+}
+
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn consume_recovery_code_returns_false_when_unmatched(pool: PgPool) {
+    let id = insert_user(&pool, "norecovery@test.com").await;
+    let repo = AuthRepositoryImpl::new(pool);
+    repo.save_mfa_secret(id, "ciphertext").await.unwrap();
+    repo.enable_mfa(id, vec!["hash-a".into()]).await.unwrap();
+
+    let consumed = repo
+        .consume_recovery_code(id, "not-a-real-hash")
+        .await
+        .unwrap();
+    assert!(!consumed);
+
+    let user = repo.find_user_by_id(id).await.unwrap().unwrap();
+    assert_eq!(user.mfa_recovery_codes, Some(vec!["hash-a".to_string()]));
+}

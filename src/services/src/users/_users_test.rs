@@ -103,6 +103,7 @@ fn blank_user(
         last_login: None,
         register_date: Utc::now(),
         updated_at: Utc::now(),
+        mfa_enabled: None,
     }
 }
 

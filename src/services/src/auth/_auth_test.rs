@@ -82,6 +82,43 @@ impl AuthRepository for MockAuthRepo {
         self.sessions.lock().unwrap().retain(|s| s.token != token);
         Ok(())
     }
+
+    async fn save_mfa_secret(&self, user_id: i32, encrypted_secret: &str) -> anyhow::Result<()> {
+        if let Some(u) = self.users.lock().unwrap().iter_mut().find(|u| u.id == user_id) {
+            u.mfa_secret = Some(encrypted_secret.to_string());
+        }
+        Ok(())
+    }
+
+    async fn enable_mfa(&self, user_id: i32, recovery_code_hashes: Vec<String>) -> anyhow::Result<()> {
+        if let Some(u) = self.users.lock().unwrap().iter_mut().find(|u| u.id == user_id) {
+            u.mfa_enabled = Some(true);
+            u.mfa_recovery_codes = Some(recovery_code_hashes);
+        }
+        Ok(())
+    }
+
+    async fn disable_mfa(&self, user_id: i32) -> anyhow::Result<()> {
+        if let Some(u) = self.users.lock().unwrap().iter_mut().find(|u| u.id == user_id) {
+            u.mfa_secret = None;
+            u.mfa_enabled = None;
+            u.mfa_recovery_codes = None;
+        }
+        Ok(())
+    }
+
+    async fn consume_recovery_code(&self, user_id: i32, code_hash: &str) -> anyhow::Result<bool> {
+        let mut users = self.users.lock().unwrap();
+        let Some(u) = users.iter_mut().find(|u| u.id == user_id) else {
+            return Ok(false);
+        };
+        let Some(codes) = u.mfa_recovery_codes.as_mut() else {
+            return Ok(false);
+        };
+        let before = codes.len();
+        codes.retain(|c| c != code_hash);
+        Ok(codes.len() < before)
+    }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -102,6 +139,9 @@ fn test_user() -> UserView {
         password: hash_password("correct_password"),
         fullname: "Admin Test".to_string(),
         client_category: 1,
+        mfa_secret: None,
+        mfa_enabled: None,
+        mfa_recovery_codes: None,
     }
 }
 
@@ -110,7 +150,26 @@ fn make_svc(repo: MockAuthRepo) -> AuthServiceImpl {
         auth_repo: Arc::new(repo),
         jwt_secret: "test_secret_key_32chars_padding!!".to_string(),
         cache: Arc::new(MockCacheClient::new()),
+        mfa_enc_key: vec![7u8; 32],
     })
+}
+
+/// Computes the current TOTP code for a base32 secret — same math a real
+/// authenticator app would do, used here to drive `confirm_mfa`/`verify_mfa`
+/// without a live device.
+fn totp_code_for(secret_base32: &str) -> String {
+    let secret_bytes = Secret::Encoded(secret_base32.to_string()).to_bytes().unwrap();
+    let totp = TOTP::new(
+        Algorithm::SHA1,
+        6,
+        1,
+        30,
+        secret_bytes,
+        Some(TOTP_ISSUER.to_string()),
+        String::new(),
+    )
+    .unwrap();
+    totp.generate_current().unwrap()
 }
 
 fn future_session(token: &str) -> SessionView {
@@ -177,6 +236,7 @@ fn validate_token_wrong_secret_rejected() {
         auth_repo: Arc::new(MockAuthRepo::new(vec![])),
         jwt_secret: "wrong_secret_key_32chars_padding!".to_string(),
         cache: Arc::new(MockCacheClient::new()),
+        mfa_enc_key: vec![7u8; 32],
     });
     assert!(svc2.validate_access_token(&token).is_err());
 }
@@ -210,10 +270,13 @@ fn validate_token_expired_rejected() {
 #[tokio::test]
 async fn login_success_returns_tokens_with_correct_claims() {
     let svc = make_svc(MockAuthRepo::new(vec![test_user()]));
-    let result = svc
+    let outcome = svc
         .login("admin@test.com", "correct_password", "1.2.3.4")
         .await
         .unwrap();
+    let LoginOutcome::Authenticated(result) = outcome else {
+        panic!("expected Authenticated for a user with no MFA enrolled");
+    };
     assert!(!result.access_token.is_empty());
     assert!(!result.refresh_token.is_empty());
     let claims = svc.validate_access_token(&result.access_token).unwrap();
@@ -318,4 +381,237 @@ async fn logout_invalidates_session() {
     let svc = make_svc(repo);
     svc.logout("logout_tok").await.unwrap();
     assert!(svc.refresh("logout_tok", "1.2.3.4").await.is_err());
+}
+
+// ── secret encryption ────────────────────────────────────────────────────────
+#[test]
+fn encrypt_decrypt_roundtrip() {
+    let svc = make_svc(MockAuthRepo::new(vec![]));
+    let ciphertext = svc.encrypt_secret(b"super-secret-bytes").unwrap();
+    assert_eq!(svc.decrypt_secret(&ciphertext).unwrap(), b"super-secret-bytes");
+}
+
+#[test]
+fn decrypt_wrong_key_fails() {
+    let svc1 = make_svc(MockAuthRepo::new(vec![]));
+    let ciphertext = svc1.encrypt_secret(b"secret").unwrap();
+
+    let svc2 = AuthServiceImpl::new(crate::auth::AuthServiceDeps {
+        auth_repo: Arc::new(MockAuthRepo::new(vec![])),
+        jwt_secret: "test_secret_key_32chars_padding!!".to_string(),
+        cache: Arc::new(MockCacheClient::new()),
+        mfa_enc_key: vec![9u8; 32],
+    });
+    assert!(svc2.decrypt_secret(&ciphertext).is_err());
+}
+
+// ── recovery codes ───────────────────────────────────────────────────────────
+#[test]
+fn generate_recovery_codes_are_well_formed_and_unique() {
+    let codes = AuthServiceImpl::generate_recovery_codes();
+    assert_eq!(codes.len(), RECOVERY_CODE_COUNT);
+    let unique: std::collections::HashSet<_> = codes.iter().collect();
+    assert_eq!(unique.len(), codes.len());
+    for c in &codes {
+        let (a, b) = c.split_once('-').expect("XXXX-XXXX shape");
+        assert_eq!(a.len(), 4);
+        assert_eq!(b.len(), 4);
+        assert!(
+            c.chars()
+                .all(|ch| ch == '-' || RECOVERY_CODE_CHARSET.contains(&(ch as u8)))
+        );
+    }
+}
+
+// ── MFA enrollment ───────────────────────────────────────────────────────────
+#[tokio::test]
+async fn enroll_mfa_returns_qr_and_secret_without_enabling() {
+    let svc = make_svc(MockAuthRepo::new(vec![test_user()]));
+    let enrollment = svc.enroll_mfa(1).await.unwrap();
+    assert!(!enrollment.secret_base32.is_empty());
+    assert!(enrollment.qr_data_uri.starts_with("data:image/png;base64,"));
+
+    // Pending (unconfirmed) enrollment must not gate login yet.
+    let outcome = svc
+        .login("admin@test.com", "correct_password", "1.2.3.4")
+        .await
+        .unwrap();
+    assert!(matches!(outcome, LoginOutcome::Authenticated(_)));
+}
+
+#[tokio::test]
+async fn confirm_mfa_enables_and_returns_recovery_codes() {
+    let svc = make_svc(MockAuthRepo::new(vec![test_user()]));
+    let enrollment = svc.enroll_mfa(1).await.unwrap();
+    let code = totp_code_for(&enrollment.secret_base32);
+
+    let recovery_codes = svc.confirm_mfa(1, &code).await.unwrap();
+    assert_eq!(recovery_codes.len(), RECOVERY_CODE_COUNT);
+}
+
+#[tokio::test]
+async fn confirm_mfa_wrong_code_fails() {
+    let svc = make_svc(MockAuthRepo::new(vec![test_user()]));
+    svc.enroll_mfa(1).await.unwrap();
+    assert!(svc.confirm_mfa(1, "000000").await.is_err());
+}
+
+// ── login + verify_mfa ───────────────────────────────────────────────────────
+async fn enrolled_svc() -> (AuthServiceImpl, String) {
+    let svc = make_svc(MockAuthRepo::new(vec![test_user()]));
+    let enrollment = svc.enroll_mfa(1).await.unwrap();
+    let code = totp_code_for(&enrollment.secret_base32);
+    svc.confirm_mfa(1, &code).await.unwrap();
+    (svc, enrollment.secret_base32)
+}
+
+#[tokio::test]
+async fn login_requires_mfa_once_enabled() {
+    let (svc, _) = enrolled_svc().await;
+    let outcome = svc
+        .login("admin@test.com", "correct_password", "1.2.3.4")
+        .await
+        .unwrap();
+    assert!(matches!(outcome, LoginOutcome::MfaRequired { .. }));
+}
+
+#[tokio::test]
+async fn verify_mfa_with_correct_totp_issues_session() {
+    let (svc, secret_base32) = enrolled_svc().await;
+    let outcome = svc
+        .login("admin@test.com", "correct_password", "1.2.3.4")
+        .await
+        .unwrap();
+    let LoginOutcome::MfaRequired { challenge_token } = outcome else {
+        panic!("expected MfaRequired");
+    };
+
+    let code = totp_code_for(&secret_base32);
+    let result = svc
+        .verify_mfa(&challenge_token, &code, "1.2.3.4")
+        .await
+        .unwrap();
+    assert!(!result.access_token.is_empty());
+}
+
+#[tokio::test]
+async fn verify_mfa_with_wrong_code_fails() {
+    let (svc, _) = enrolled_svc().await;
+    let outcome = svc
+        .login("admin@test.com", "correct_password", "1.2.3.4")
+        .await
+        .unwrap();
+    let LoginOutcome::MfaRequired { challenge_token } = outcome else {
+        panic!("expected MfaRequired");
+    };
+    assert!(
+        svc.verify_mfa(&challenge_token, "000000", "1.2.3.4")
+            .await
+            .is_err()
+    );
+}
+
+#[tokio::test]
+async fn verify_mfa_rejects_expired_or_foreign_challenge_token() {
+    let (svc, secret_base32) = enrolled_svc().await;
+    let code = totp_code_for(&secret_base32);
+    assert!(
+        svc.verify_mfa("not-a-real-challenge", &code, "1.2.3.4")
+            .await
+            .is_err()
+    );
+}
+
+#[tokio::test]
+async fn verify_mfa_with_recovery_code_consumes_it_once() {
+    let svc = make_svc(MockAuthRepo::new(vec![test_user()]));
+    let enrollment = svc.enroll_mfa(1).await.unwrap();
+    let code = totp_code_for(&enrollment.secret_base32);
+    let recovery_codes = svc.confirm_mfa(1, &code).await.unwrap();
+    let used_code = &recovery_codes[0];
+
+    let outcome = svc
+        .login("admin@test.com", "correct_password", "1.2.3.4")
+        .await
+        .unwrap();
+    let LoginOutcome::MfaRequired { challenge_token } = outcome else {
+        panic!("expected MfaRequired");
+    };
+    let result = svc
+        .verify_mfa(&challenge_token, used_code, "1.2.3.4")
+        .await
+        .unwrap();
+    assert!(!result.access_token.is_empty());
+
+    // Same code again, fresh challenge — must be rejected (one-time use).
+    let outcome2 = svc
+        .login("admin@test.com", "correct_password", "1.2.3.4")
+        .await
+        .unwrap();
+    let LoginOutcome::MfaRequired {
+        challenge_token: token2,
+    } = outcome2
+    else {
+        panic!("expected MfaRequired");
+    };
+    assert!(
+        svc.verify_mfa(&token2, used_code, "1.2.3.4")
+            .await
+            .is_err()
+    );
+}
+
+#[tokio::test]
+async fn verify_mfa_locks_after_max_failures() {
+    let (svc, secret_base32) = enrolled_svc().await;
+    let outcome = svc
+        .login("admin@test.com", "correct_password", "1.2.3.4")
+        .await
+        .unwrap();
+    let LoginOutcome::MfaRequired { challenge_token } = outcome else {
+        panic!("expected MfaRequired");
+    };
+
+    for _ in 0..MAX_MFA_ATTEMPTS {
+        let _ = svc
+            .verify_mfa(&challenge_token, "000000", "1.2.3.4")
+            .await;
+    }
+    let code = totp_code_for(&secret_base32);
+    let err = svc
+        .verify_mfa(&challenge_token, &code, "1.2.3.4")
+        .await
+        .unwrap_err();
+    assert!(err.to_string().contains("Terlalu banyak"));
+}
+
+// ── disable_mfa ──────────────────────────────────────────────────────────────
+#[tokio::test]
+async fn disable_mfa_requires_valid_code() {
+    let (svc, secret_base32) = enrolled_svc().await;
+    assert!(svc.disable_mfa(1, "000000").await.is_err());
+
+    let code = totp_code_for(&secret_base32);
+    svc.disable_mfa(1, &code).await.unwrap();
+
+    let outcome = svc
+        .login("admin@test.com", "correct_password", "1.2.3.4")
+        .await
+        .unwrap();
+    assert!(matches!(outcome, LoginOutcome::Authenticated(_)));
+}
+
+#[tokio::test]
+async fn disable_mfa_accepts_recovery_code() {
+    let svc = make_svc(MockAuthRepo::new(vec![test_user()]));
+    let enrollment = svc.enroll_mfa(1).await.unwrap();
+    let code = totp_code_for(&enrollment.secret_base32);
+    let recovery_codes = svc.confirm_mfa(1, &code).await.unwrap();
+
+    svc.disable_mfa(1, &recovery_codes[0]).await.unwrap();
+    let outcome = svc
+        .login("admin@test.com", "correct_password", "1.2.3.4")
+        .await
+        .unwrap();
+    assert!(matches!(outcome, LoginOutcome::Authenticated(_)));
 }

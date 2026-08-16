@@ -3,20 +3,24 @@ use std::sync::Arc;
 use actix_web::{App, HttpMessage, HttpResponse, test, web};
 use anyhow::{Result, anyhow};
 use async_trait::async_trait;
-use modules::auth::{AuthService, Claims, LoginResult};
+use modules::auth::{AuthService, Claims, LoginOutcome, LoginResult, MfaEnrollmentView};
 
 use super::{AuthMiddleware, needs_auth_check};
 
 // ── Mock AuthService ────────────────────────────────────────────────────────
 // Only `validate_access_token`/`refresh` are ever called by the middleware —
-// `login`/`logout` aren't exercised in this path, so they just error out if
-// something unexpectedly calls them.
+// everything else (login/logout/MFA enrollment) isn't exercised in this
+// path, so those just error out if something unexpectedly calls them.
 
 struct MockAuthService;
 
 #[async_trait]
 impl AuthService for MockAuthService {
-    async fn login(&self, _email: &str, _password: &str, _ip: &str) -> Result<LoginResult> {
+    async fn login(&self, _email: &str, _password: &str, _ip: &str) -> Result<LoginOutcome> {
+        Err(anyhow!("not used by AuthMiddleware"))
+    }
+
+    async fn verify_mfa(&self, _challenge_token: &str, _code: &str, _ip: &str) -> Result<LoginResult> {
         Err(anyhow!("not used by AuthMiddleware"))
     }
 
@@ -45,6 +49,18 @@ impl AuthService for MockAuthService {
             }),
             _ => Err(anyhow!("invalid access token")),
         }
+    }
+
+    async fn enroll_mfa(&self, _user_id: i32) -> Result<MfaEnrollmentView> {
+        Err(anyhow!("not used by AuthMiddleware"))
+    }
+
+    async fn confirm_mfa(&self, _user_id: i32, _code: &str) -> Result<Vec<String>> {
+        Err(anyhow!("not used by AuthMiddleware"))
+    }
+
+    async fn disable_mfa(&self, _user_id: i32, _code: &str) -> Result<()> {
+        Err(anyhow!("not used by AuthMiddleware"))
     }
 }
 

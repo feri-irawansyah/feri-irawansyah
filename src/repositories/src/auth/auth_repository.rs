@@ -22,7 +22,9 @@ impl AuthRepositoryImpl {
 impl AuthRepository for AuthRepositoryImpl {
     async fn find_user_by_email(&self, email: &str) -> Result<Option<UserView>> {
         let row = sqlx::query_as::<_, UserView>(
-            "SELECT id, email, password, fullname, client_category FROM users
+            "SELECT id, email, password, fullname, client_category,
+                    mfa_secret, mfa_enabled, mfa_recovery_codes
+             FROM users
              WHERE email = $1 AND disable_login = FALSE",
         )
         .bind(email)
@@ -33,7 +35,9 @@ impl AuthRepository for AuthRepositoryImpl {
 
     async fn find_user_by_id(&self, id: i32) -> Result<Option<UserView>> {
         let row = sqlx::query_as::<_, UserView>(
-            "SELECT id, email, password, fullname, client_category FROM users WHERE id = $1",
+            "SELECT id, email, password, fullname, client_category,
+                    mfa_secret, mfa_enabled, mfa_recovery_codes
+             FROM users WHERE id = $1",
         )
         .bind(id)
         .fetch_optional(&self.pool)
@@ -78,5 +82,52 @@ impl AuthRepository for AuthRepositoryImpl {
             .execute(&self.pool)
             .await?;
         Ok(())
+    }
+
+    async fn save_mfa_secret(&self, user_id: i32, encrypted_secret: &str) -> Result<()> {
+        sqlx::query("UPDATE users SET mfa_secret = $2 WHERE id = $1")
+            .bind(user_id)
+            .bind(encrypted_secret)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
+    async fn enable_mfa(&self, user_id: i32, recovery_code_hashes: Vec<String>) -> Result<()> {
+        sqlx::query(
+            "UPDATE users SET mfa_enabled = TRUE, mfa_recovery_codes = $2 WHERE id = $1",
+        )
+        .bind(user_id)
+        .bind(recovery_code_hashes)
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    async fn disable_mfa(&self, user_id: i32) -> Result<()> {
+        sqlx::query(
+            "UPDATE users
+             SET mfa_secret = NULL, mfa_enabled = NULL, mfa_recovery_codes = NULL
+             WHERE id = $1",
+        )
+        .bind(user_id)
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    async fn consume_recovery_code(&self, user_id: i32, code_hash: &str) -> Result<bool> {
+        // array_remove is a no-op if the hash isn't present, so the WHERE
+        // guard is what tells us whether it actually matched anything.
+        let result = sqlx::query(
+            "UPDATE users
+             SET mfa_recovery_codes = array_remove(mfa_recovery_codes, $2)
+             WHERE id = $1 AND mfa_recovery_codes @> ARRAY[$2]::text[]",
+        )
+        .bind(user_id)
+        .bind(code_hash)
+        .execute(&self.pool)
+        .await?;
+        Ok(result.rows_affected() > 0)
     }
 }

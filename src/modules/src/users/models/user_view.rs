@@ -25,4 +25,8 @@ pub struct UserView {
     pub last_login: Option<DateTime<Utc>>,
     pub register_date: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    /// `Some(true)` once MFA enrollment is confirmed; `None` means never
+    /// enrolled. See `modules::auth::UserView` for the enrollment fields
+    /// themselves — this domain only needs the on/off state for display.
+    pub mfa_enabled: Option<bool>,
 }

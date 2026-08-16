@@ -11,7 +11,7 @@ const SELECT_ALL: &str = "SELECT id, email, password, fullname, mobile_phone, pi
     google_id, client_category, activate_code, otp_generated_link,
     otp_generated_link_date, count_resend_activation, activate_time,
     disable_login, reset_password_key, reset_password_flag,
-    reset_password_date, last_login, register_date, updated_at
+    reset_password_date, last_login, register_date, updated_at, mfa_enabled
     FROM users";
 
 pub struct UserRepositoryImpl {
@@ -40,7 +40,7 @@ impl UserRepository for UserRepositoryImpl {
              google_id, client_category, activate_code, otp_generated_link,
              otp_generated_link_date, count_resend_activation, activate_time,
              disable_login, reset_password_key, reset_password_flag,
-             reset_password_date, last_login, register_date, updated_at",
+             reset_password_date, last_login, register_date, updated_at, mfa_enabled",
         )
         .bind(email)
         .bind(password_hash)

@@ -61,11 +61,13 @@ impl AppServices {
         cache: Arc<dyn CacheStore>,
         storage: Arc<dyn StorageStore>,
         jwt_secret: String,
+        mfa_enc_key: Vec<u8>,
     ) -> Self {
         let auth = Arc::new(AuthServiceImpl::new(AuthServiceDeps {
             auth_repo: Arc::new(AuthRepositoryImpl::new(pool.clone())),
             jwt_secret,
             cache: cache.clone(),
+            mfa_enc_key,
         })) as Arc<dyn AuthService>;
 
         let user = Arc::new(UserServiceImpl::new(UserServiceDeps {

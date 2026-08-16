@@ -67,6 +67,26 @@ async fn main() -> std::io::Result<()> {
 
     let jwt_secret = std::env::var("JWT_SECRET").expect("JWT_SECRET must be set");
 
+    // AES-256-GCM key for encrypting MFA (TOTP) secrets at rest — see
+    // designs/mfa-design.md §4.4. Same posture as JWT_SECRET: fail loudly at
+    // boot rather than let AuthServiceImpl construct with a key that can
+    // never successfully decrypt anything. Generate with:
+    //   openssl rand -base64 32
+    let mfa_enc_key = {
+        use base64::{Engine as _, engine::general_purpose::STANDARD};
+        let encoded = std::env::var("MFA_ENC_KEY").expect("MFA_ENC_KEY must be set");
+        let key = STANDARD
+            .decode(encoded.trim())
+            .expect("MFA_ENC_KEY must be valid base64");
+        assert_eq!(
+            key.len(),
+            32,
+            "MFA_ENC_KEY must decode to exactly 32 bytes (AES-256), got {}",
+            key.len()
+        );
+        key
+    };
+
     let pool = create_pool().await.expect("database connection failed");
     schemas::run(&pool).await.expect("migration failed");
     tracing::info!("Database connected and migrations applied");
@@ -80,7 +100,7 @@ async fn main() -> std::io::Result<()> {
         connectors::supabase::SupabaseClient::from_env().expect("supabase config invalid"),
     );
 
-    let services = AppServices::build(pool.clone(), cache, storage, jwt_secret);
+    let services = AppServices::build(pool.clone(), cache, storage, jwt_secret, mfa_enc_key);
 
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
