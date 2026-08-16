@@ -1,12 +1,12 @@
 use leptos::prelude::*;
-use leptos_router::{components::A, hooks::use_location, hooks::use_navigate, NavigateOptions};
+use leptos_router::{NavigateOptions, components::A, hooks::use_location, hooks::use_navigate};
 
 #[server]
 pub async fn logout_action() -> Result<(), ServerFnError> {
     use actix_web::{
+        HttpRequest,
         http::header::{HeaderValue, SET_COOKIE},
         web::Data,
-        HttpRequest,
     };
     use leptos_actix::{ResponseOptions, extract};
     use std::sync::Arc;
@@ -58,11 +58,14 @@ pub fn AdminLayout(children: Children) -> impl IntoView {
     let navigate = use_navigate();
     let pathname = use_location().pathname;
 
-    let (is_dark, set_is_dark) = use_context::<(ReadSignal<bool>, WriteSignal<bool>)>()
-        .expect("dark mode context missing");
+    let (is_dark, set_is_dark) =
+        use_context::<(ReadSignal<bool>, WriteSignal<bool>)>().expect("dark mode context missing");
 
     Effect::new(move |_| {
-        if logout.value().with(|v| v.as_ref().map(|r| r.is_ok()).unwrap_or(false)) {
+        if logout
+            .value()
+            .with(|v| v.as_ref().map(|r| r.is_ok()).unwrap_or(false))
+        {
             navigate("/admin/login", NavigateOptions::default());
         }
     });
@@ -95,7 +98,7 @@ pub fn AdminLayout(children: Children) -> impl IntoView {
         <aside class="fixed left-0 top-0 h-screen w-60 z-40 bg-surface border-r border-line border-t-2 border-t-teal-500 flex flex-col">
 
             // Brand
-            <div class="h-[72px] flex items-center px-5 border-b border-line shrink-0">
+            <div class="h-18 flex items-center px-5 border-b border-line shrink-0">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg bg-teal-500/15 flex items-center justify-center shrink-0">
                         <i class="bi bi-terminal-fill text-teal-500 text-sm"></i>
@@ -233,7 +236,7 @@ pub fn AdminLayout(children: Children) -> impl IntoView {
         // Content area
         <div class="ml-60 flex flex-col min-h-screen">
             // Sticky header
-            <header class="sticky top-0 z-30 bg-surface/80 backdrop-blur-sm border-b border-line border-t-2 border-t-teal-500 px-6 h-[72px] flex items-center justify-between shrink-0">
+            <header class="sticky top-0 z-30 bg-surface/80 backdrop-blur-sm border-b border-line border-t-2 border-t-teal-500 px-6 h-18 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-2.5">
                     <span class="w-6 h-6 rounded-md bg-teal-500/15 flex items-center justify-center">
                         <i class={move || format!("bi {} text-teal-500 text-xs", page_title().1)}></i>
@@ -267,10 +270,7 @@ pub fn AdminLayout(children: Children) -> impl IntoView {
 /// Error row for admin CRUD tables — spans all columns, shows message + reload button.
 #[allow(non_snake_case)]
 #[component]
-pub fn TableErrorRow(
-    #[prop(default = 5)] cols: usize,
-    message: String,
-) -> impl IntoView {
+pub fn TableErrorRow(#[prop(default = 5)] cols: usize, message: String) -> impl IntoView {
     view! {
         <tr>
             <td colspan={cols.to_string()} class="px-5 py-10 text-center">
@@ -337,7 +337,7 @@ pub fn TableSkeleton(
                     {(0..cols).map(|i| {
                         let w = col_widths[i % col_widths.len()];
                         view! {
-                            <td class="px-5 py-[14px]">
+                            <td class="px-5 py-3.5">
                                 <div class={format!("h-3.5 bg-line rounded-md animate-pulse {w}")}></div>
                             </td>
                         }
@@ -358,7 +358,8 @@ pub fn pagination_footer<T: Clone + 'static>(
     page_size: i64,
 ) -> impl IntoView {
     let total_pages = move || {
-        resource.get()
+        resource
+            .get()
             .and_then(|r| r.ok())
             .map(|(_, total)| ((total + page_size - 1) / page_size).max(1))
             .unwrap_or(1)
@@ -395,7 +396,7 @@ pub fn pagination_footer<T: Clone + 'static>(
                         let end = (cur * page_size).min(total);
                         format!("Menampilkan {start}-{end} dari {total}")
                     }
-                    _ => String::new(),
+                    _ => "".into(),
                 }}
             </p>
             <div class="flex items-center gap-1">

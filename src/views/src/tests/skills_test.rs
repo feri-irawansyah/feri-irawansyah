@@ -33,11 +33,7 @@ fn for_star_below_4_is_used_before() {
 
 #[test]
 fn group_by_tier_buckets_correctly_and_orders_favorite_first() {
-    let items = vec![
-        make_skill(1, 2),
-        make_skill(2, 5),
-        make_skill(3, 4),
-    ];
+    let items = vec![make_skill(1, 2), make_skill(2, 5), make_skill(3, 4)];
     let groups = group_by_tier(&items);
 
     assert_eq!(groups.len(), 3);

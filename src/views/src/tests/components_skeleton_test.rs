@@ -24,6 +24,7 @@ fn note_card_skeleton_default_count_matches_documented_default() {
 fn skill_card_skeleton_renders_requested_count() {
     let view = SkillCardSkeleton(SkillCardSkeletonProps::builder().count(2).build());
     let html = view.to_html();
-    let card_open = r#"class="bg-surface border border-line rounded-xl p-6 flex flex-col items-center gap-4""#;
+    let card_open =
+        r#"class="bg-surface border border-line rounded-xl p-6 flex flex-col items-center gap-4""#;
     assert_eq!(html.matches(card_open).count(), 2);
 }

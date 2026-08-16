@@ -18,18 +18,26 @@ async fn insert_user(pool: &PgPool, email: &str) -> i32 {
 }
 
 // ── find_user_by_email ────────────────────────────────────────────────────────
-
 #[sqlx::test(migrator = "MIGRATOR")]
 async fn find_user_by_email_returns_none_for_unknown(pool: PgPool) {
     let repo = AuthRepositoryImpl::new(pool);
-    assert!(repo.find_user_by_email("ghost@test.com").await.unwrap().is_none());
+    assert!(
+        repo.find_user_by_email("ghost@test.com")
+            .await
+            .unwrap()
+            .is_none()
+    );
 }
 
 #[sqlx::test(migrator = "MIGRATOR")]
 async fn find_user_by_email_finds_existing(pool: PgPool) {
     insert_user(&pool, "admin@test.com").await;
     let repo = AuthRepositoryImpl::new(pool);
-    let user = repo.find_user_by_email("admin@test.com").await.unwrap().unwrap();
+    let user = repo
+        .find_user_by_email("admin@test.com")
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!(user.email, "admin@test.com");
 }
 
@@ -42,11 +50,15 @@ async fn find_user_by_email_ignores_disabled_login(pool: PgPool) {
         .await
         .unwrap();
     let repo = AuthRepositoryImpl::new(pool);
-    assert!(repo.find_user_by_email("disabled@test.com").await.unwrap().is_none());
+    assert!(
+        repo.find_user_by_email("disabled@test.com")
+            .await
+            .unwrap()
+            .is_none()
+    );
 }
 
 // ── find_user_by_id ───────────────────────────────────────────────────────────
-
 #[sqlx::test(migrator = "MIGRATOR")]
 async fn find_user_by_id_returns_none_for_unknown(pool: PgPool) {
     let repo = AuthRepositoryImpl::new(pool);
@@ -62,7 +74,6 @@ async fn find_user_by_id_finds_existing(pool: PgPool) {
 }
 
 // ── create_session ────────────────────────────────────────────────────────────
-
 #[sqlx::test(migrator = "MIGRATOR")]
 async fn create_session_stores_correct_fields(pool: PgPool) {
     let user_id = insert_user(&pool, "session@test.com").await;
@@ -79,11 +90,15 @@ async fn create_session_stores_correct_fields(pool: PgPool) {
 }
 
 // ── find_session_by_token ─────────────────────────────────────────────────────
-
 #[sqlx::test(migrator = "MIGRATOR")]
 async fn find_session_by_token_returns_none_for_unknown(pool: PgPool) {
     let repo = AuthRepositoryImpl::new(pool);
-    assert!(repo.find_session_by_token("nonexistent").await.unwrap().is_none());
+    assert!(
+        repo.find_session_by_token("nonexistent")
+            .await
+            .unwrap()
+            .is_none()
+    );
 }
 
 #[sqlx::test(migrator = "MIGRATOR")]
@@ -92,22 +107,34 @@ async fn find_session_by_token_finds_created_session(pool: PgPool) {
     let repo = AuthRepositoryImpl::new(pool);
     let expired_at = Utc::now() + chrono::Duration::days(7);
 
-    repo.create_session(user_id, "find-tok", "1.2.3.4", expired_at).await.unwrap();
-    let found = repo.find_session_by_token("find-tok").await.unwrap().unwrap();
+    repo.create_session(user_id, "find-tok", "1.2.3.4", expired_at)
+        .await
+        .unwrap();
+    let found = repo
+        .find_session_by_token("find-tok")
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!(found.user_id, user_id);
 }
 
 // ── delete_session_by_token ───────────────────────────────────────────────────
-
 #[sqlx::test(migrator = "MIGRATOR")]
 async fn delete_session_removes_it(pool: PgPool) {
     let user_id = insert_user(&pool, "del@test.com").await;
     let repo = AuthRepositoryImpl::new(pool);
     let expired_at = Utc::now() + chrono::Duration::days(7);
 
-    repo.create_session(user_id, "del-tok", "1.2.3.4", expired_at).await.unwrap();
+    repo.create_session(user_id, "del-tok", "1.2.3.4", expired_at)
+        .await
+        .unwrap();
     repo.delete_session_by_token("del-tok").await.unwrap();
-    assert!(repo.find_session_by_token("del-tok").await.unwrap().is_none());
+    assert!(
+        repo.find_session_by_token("del-tok")
+            .await
+            .unwrap()
+            .is_none()
+    );
 }
 
 #[sqlx::test(migrator = "MIGRATOR")]

@@ -69,7 +69,7 @@ fn Shell(is_dark: ReadSignal<bool>, set_is_dark: WriteSignal<bool>) -> impl Into
         if nav_open.get() {
             format!(
                 "left:50%;bottom:0;transform:translate(calc(-50% + {dx}px), -{dy}px) scale(1);opacity:1;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s;"
-            )
+            ).to_string()
         } else {
             "left:50%;bottom:0;transform:translate(-50%, 0) scale(0.2);opacity:0;transition:transform 0.2s ease-in, opacity 0.15s;".to_string()
         }

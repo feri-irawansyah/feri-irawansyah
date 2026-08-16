@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use modules::laboratory::LaboratoryView;
 
-use super::layout::{pagination_footer, AdminLayout, TableErrorRow, TableSkeleton};
+use super::layout::{AdminLayout, TableErrorRow, TableSkeleton, pagination_footer};
 
 #[cfg(feature = "ssr")]
 use modules::Validate;
@@ -17,7 +17,6 @@ const CATEGORY_OPTIONS: &[(&str, &str)] = &[
 ];
 
 // ── Server functions (admin-guarded) ─────────────────────────────────────────
-
 #[cfg(feature = "ssr")]
 async fn laboratory_svc()
 -> Result<std::sync::Arc<dyn modules::laboratory::LaboratoryService>, ServerFnError> {
@@ -48,7 +47,9 @@ pub async fn admin_create_laboratory(
     input: modules::laboratory::LaboratoryCommand,
 ) -> Result<LaboratoryView, ServerFnError> {
     crate::pages::admin::require_admin().await?;
-    input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
+    input
+        .validate()
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
     laboratory_svc()
         .await?
         .create_async(input)
@@ -62,7 +63,9 @@ pub async fn admin_update_laboratory(
     input: modules::laboratory::LaboratoryCommand,
 ) -> Result<Option<LaboratoryView>, ServerFnError> {
     crate::pages::admin::require_admin().await?;
-    input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
+    input
+        .validate()
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
     laboratory_svc()
         .await?
         .update_async(id, input)
@@ -81,7 +84,6 @@ pub async fn admin_delete_laboratory(id: i32) -> Result<bool, ServerFnError> {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────
-
 #[allow(non_snake_case)]
 #[component]
 pub fn AdminLaboratoryPage() -> impl IntoView {

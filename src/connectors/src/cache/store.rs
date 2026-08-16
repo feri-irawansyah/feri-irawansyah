@@ -89,7 +89,7 @@ pub fn hash_part(input: &str) -> String {
         hash ^= u64::from(*byte);
         hash = hash.wrapping_mul(FNV_PRIME);
     }
-    format!("{hash:016x}")
+    format!("{hash:016x}").to_string()
 }
 
 #[cfg(test)]

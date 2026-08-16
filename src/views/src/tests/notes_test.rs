@@ -2,7 +2,10 @@ use crate::pages::notes::encode_query_param;
 
 #[test]
 fn encode_query_param_leaves_unreserved_chars_untouched() {
-    assert_eq!(encode_query_param("rust-async_lib.rs~1"), "rust-async_lib.rs~1");
+    assert_eq!(
+        encode_query_param("rust-async_lib.rs~1"),
+        "rust-async_lib.rs~1"
+    );
 }
 
 #[test]

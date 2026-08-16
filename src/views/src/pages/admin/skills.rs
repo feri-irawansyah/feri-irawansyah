@@ -1,13 +1,12 @@
 use leptos::prelude::*;
 use modules::skills::SkillView;
 
-use super::layout::{pagination_footer, AdminLayout, TableErrorRow, TableSkeleton};
+use super::layout::{AdminLayout, TableErrorRow, TableSkeleton, pagination_footer};
 
 #[cfg(feature = "ssr")]
 use modules::Validate;
 
 // ── Server functions (admin-guarded) ─────────────────────────────────────────
-
 #[cfg(feature = "ssr")]
 async fn skill_svc() -> Result<std::sync::Arc<dyn modules::skills::SkillService>, ServerFnError> {
     use actix_web::web::Data;
@@ -35,7 +34,9 @@ pub async fn admin_create_skill(
     input: modules::skills::SkillCommand,
 ) -> Result<SkillView, ServerFnError> {
     crate::pages::admin::require_admin().await?;
-    input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
+    input
+        .validate()
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
     skill_svc()
         .await?
         .create_async(input)
@@ -49,7 +50,9 @@ pub async fn admin_update_skill(
     input: modules::skills::SkillCommand,
 ) -> Result<Option<SkillView>, ServerFnError> {
     crate::pages::admin::require_admin().await?;
-    input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
+    input
+        .validate()
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
     skill_svc()
         .await?
         .update_async(skill_id, input)
@@ -68,7 +71,6 @@ pub async fn admin_delete_skill(skill_id: i32) -> Result<bool, ServerFnError> {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────
-
 #[allow(non_snake_case)]
 #[component]
 pub fn AdminSkillsPage() -> impl IntoView {
@@ -105,13 +107,18 @@ pub fn AdminSkillsPage() -> impl IntoView {
                 error: Option<String>,
             }
 
-            let Some(input) = _ev.target().and_then(|t| t.dyn_into::<HtmlInputElement>().ok()) else {
+            let Some(input) = _ev
+                .target()
+                .and_then(|t| t.dyn_into::<HtmlInputElement>().ok())
+            else {
                 return;
             };
             let Some(files) = input.files() else { return };
             let Some(file) = files.get(0) else { return };
 
-            let Ok(form_data) = FormData::new() else { return };
+            let Ok(form_data) = FormData::new() else {
+                return;
+            };
             let _ = form_data.append_with_str("folder", "skills");
             let _ = form_data.append_with_blob_and_filename("file", &file, &file.name());
 

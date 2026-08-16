@@ -2,13 +2,12 @@ use leptos::prelude::*;
 use modules::portfolio::PortfolioView;
 use modules::skills::SkillView;
 
-use super::layout::{pagination_footer, AdminLayout, TableErrorRow, TableSkeleton};
+use super::layout::{AdminLayout, TableErrorRow, TableSkeleton, pagination_footer};
 
 #[cfg(feature = "ssr")]
 use modules::Validate;
 
 // ── Server functions (admin-guarded) ─────────────────────────────────────────
-
 #[cfg(feature = "ssr")]
 async fn portfolio_svc()
 -> Result<std::sync::Arc<dyn modules::portfolio::PortfolioService>, ServerFnError> {
@@ -49,7 +48,9 @@ pub async fn admin_create_portfolio(
     input: modules::portfolio::PortfolioCommand,
 ) -> Result<PortfolioView, ServerFnError> {
     crate::pages::admin::require_admin().await?;
-    input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
+    input
+        .validate()
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
     portfolio_svc()
         .await?
         .create_async(input)
@@ -63,7 +64,9 @@ pub async fn admin_update_portfolio(
     input: modules::portfolio::PortfolioCommand,
 ) -> Result<Option<PortfolioView>, ServerFnError> {
     crate::pages::admin::require_admin().await?;
-    input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
+    input
+        .validate()
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
     portfolio_svc()
         .await?
         .update_async(id, input)
@@ -82,7 +85,6 @@ pub async fn admin_delete_portfolio(id: i32) -> Result<bool, ServerFnError> {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────
-
 #[allow(non_snake_case)]
 #[component]
 pub fn AdminPortfolioPage() -> impl IntoView {
@@ -123,13 +125,18 @@ pub fn AdminPortfolioPage() -> impl IntoView {
                 error: Option<String>,
             }
 
-            let Some(input) = _ev.target().and_then(|t| t.dyn_into::<HtmlInputElement>().ok()) else {
+            let Some(input) = _ev
+                .target()
+                .and_then(|t| t.dyn_into::<HtmlInputElement>().ok())
+            else {
                 return;
             };
             let Some(files) = input.files() else { return };
             let Some(file) = files.get(0) else { return };
 
-            let Ok(form_data) = FormData::new() else { return };
+            let Ok(form_data) = FormData::new() else {
+                return;
+            };
             let _ = form_data.append_with_str("folder", "portfolio");
             let _ = form_data.append_with_blob_and_filename("file", &file, &file.name());
 

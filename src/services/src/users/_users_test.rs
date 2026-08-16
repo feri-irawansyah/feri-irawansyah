@@ -3,7 +3,6 @@ use modules::users::{UserRepository, UserView};
 use std::sync::Mutex;
 
 // ── Mock repository ───────────────────────────────────────────────────────────
-
 struct MockUserRepo {
     users: Mutex<Vec<UserView>>,
     next_id: Mutex<i32>,
@@ -75,7 +74,6 @@ impl UserRepository for MockUserRepo {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
 fn blank_user(
     id: i32,
     email: &str,
@@ -129,7 +127,6 @@ fn seed_users(n: usize) -> Vec<UserView> {
 }
 
 // ── create ────────────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn create_hashes_password_not_plaintext() {
     let svc = make_svc(MockUserRepo::empty());
@@ -157,7 +154,6 @@ async fn create_stores_correct_metadata() {
 }
 
 // ── find_by_id ────────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn find_by_id_returns_user_when_found() {
     let users = seed_users(3);
@@ -174,7 +170,6 @@ async fn find_by_id_returns_none_when_missing() {
 }
 
 // ── find_by_email ─────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn find_by_email_returns_user_when_found() {
     let users = seed_users(3);
@@ -187,11 +182,15 @@ async fn find_by_email_returns_user_when_found() {
 #[tokio::test]
 async fn find_by_email_returns_none_when_missing() {
     let svc = make_svc(MockUserRepo::empty());
-    assert!(svc.find_by_email_async("ghost@test.com").await.unwrap().is_none());
+    assert!(
+        svc.find_by_email_async("ghost@test.com")
+            .await
+            .unwrap()
+            .is_none()
+    );
 }
 
 // ── find_all ──────────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn find_all_respects_limit() {
     let users = seed_users(10);

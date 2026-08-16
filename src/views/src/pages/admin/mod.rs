@@ -22,9 +22,6 @@ pub use portfolio::AdminPortfolioPage;
 pub use skills::AdminSkillsPage;
 pub use users::UsersPage;
 
-// Middleware attaches Claims to request extensions before any handler runs.
-// Guards below just read from extensions — no re-validation needed.
-
 /// Admin-only guard. Redirects to /admin/login if unauthenticated or not admin.
 #[cfg(feature = "ssr")]
 pub async fn require_admin() -> Result<modules::auth::Claims, leptos::prelude::ServerFnError> {

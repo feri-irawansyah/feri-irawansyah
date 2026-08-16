@@ -4,7 +4,6 @@ use modules::notes::{NoteCommand, NoteRepository, NoteView};
 use std::sync::Mutex;
 
 // ── Mock repository ───────────────────────────────────────────────────────────
-
 struct MockNoteRepo {
     notes: Mutex<Vec<NoteView>>,
     next_id: Mutex<i32>,
@@ -206,7 +205,6 @@ impl NoteRepository for MockNoteRepo {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
 fn make_svc(repo: MockNoteRepo) -> NoteServiceImpl {
     NoteServiceImpl::new(crate::notes::NoteServiceDeps {
         note_repo: Arc::new(repo),
@@ -243,7 +241,6 @@ fn make_cmd(slug: &str, category: &str) -> NoteCommand {
 }
 
 // ── list ─────────────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn list_returns_only_enabled() {
     let notes = vec![
@@ -257,7 +254,6 @@ async fn list_returns_only_enabled() {
 }
 
 // ── recent ────────────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn recent_respects_limit() {
     let notes = (1..=10)
@@ -280,7 +276,6 @@ async fn recent_excludes_disabled() {
 }
 
 // ── get_by_slug ───────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn get_by_slug_found() {
     let notes = vec![make_note(1, "my-post", "rust", true)];
@@ -297,7 +292,6 @@ async fn get_by_slug_not_found() {
 }
 
 // ── by_category ───────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn by_category_filters_correctly() {
     let notes = vec![
@@ -312,7 +306,6 @@ async fn by_category_filters_correctly() {
 }
 
 // ── search ───────────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn search_matches_title() {
     let notes = vec![
@@ -357,7 +350,6 @@ async fn search_paginates_results() {
 }
 
 // ── create ────────────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn create_stores_and_returns_note() {
     let svc = make_svc(MockNoteRepo::empty());
@@ -370,7 +362,6 @@ async fn create_stores_and_returns_note() {
 }
 
 // ── update ────────────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn update_modifies_existing_note() {
     let notes = vec![make_note(1, "old-slug", "rust", true)];
@@ -395,7 +386,6 @@ async fn update_returns_none_for_missing_id() {
 }
 
 // ── delete ────────────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn delete_existing_returns_true() {
     let notes = vec![make_note(1, "to-delete", "rust", true)];
@@ -411,7 +401,6 @@ async fn delete_missing_returns_false() {
 }
 
 // ── list_page ─────────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn list_page_paginates_correctly() {
     let notes = (1..=10)

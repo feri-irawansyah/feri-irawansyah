@@ -15,13 +15,15 @@
 /// nothing needs to be set for a normal build.
 pub const ASSET_BASE: &str = match option_env!("SUPABASE_ASSET_BASE_URL") {
     Some(url) => url,
-    None => "https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img",
+    None => {
+        "https://vjwknqthtunirowwtrvj.supabase.co/storage/v1/object/public/feri-irawansyah.my.id/assets/img"
+    }
 };
 
 /// Builds a full asset URL from a path relative to `ASSET_BASE`
 /// (e.g. `"notes/some-slug.webp"` or `"fullstack.webp"`).
 pub fn asset_url(path: &str) -> String {
-    format!("{ASSET_BASE}/{path}")
+    format!("{ASSET_BASE}/{path}").to_string()
 }
 
 /// The hero/profile image reused across SEO tags, structured data, and the about/home pages.

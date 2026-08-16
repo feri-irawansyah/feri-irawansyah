@@ -1,13 +1,12 @@
 use leptos::prelude::*;
 use modules::notes::NoteView;
 
-use super::layout::{pagination_footer, AdminLayout, TableErrorRow, TableSkeleton};
+use super::layout::{AdminLayout, TableErrorRow, TableSkeleton, pagination_footer};
 
 #[cfg(feature = "ssr")]
 use modules::Validate;
 
 // ── Server functions (admin-guarded) ─────────────────────────────────────────
-
 #[cfg(feature = "ssr")]
 async fn note_svc() -> Result<std::sync::Arc<dyn modules::notes::NoteService>, ServerFnError> {
     use actix_web::web::Data;
@@ -45,7 +44,9 @@ pub async fn admin_create_note(
     input: modules::notes::NoteCommand,
 ) -> Result<NoteView, ServerFnError> {
     crate::pages::admin::require_admin().await?;
-    input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
+    input
+        .validate()
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
     note_svc()
         .await?
         .create_async(input)
@@ -59,7 +60,9 @@ pub async fn admin_update_note(
     input: modules::notes::NoteCommand,
 ) -> Result<Option<NoteView>, ServerFnError> {
     crate::pages::admin::require_admin().await?;
-    input.validate().map_err(|e| ServerFnError::new(e.to_string()))?;
+    input
+        .validate()
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
     note_svc()
         .await?
         .update_async(id, input)

@@ -8,7 +8,6 @@ use modules::Validate;
 use super::layout::{AdminLayout, TableErrorRow, TableSkeleton, pagination_footer};
 
 // ── Server functions (admin-guarded) ─────────────────────────────────────────
-
 #[cfg(feature = "ssr")]
 async fn experience_svc()
 -> Result<std::sync::Arc<dyn modules::experience::ExperienceService>, ServerFnError> {

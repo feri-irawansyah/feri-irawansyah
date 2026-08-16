@@ -11,23 +11,25 @@ struct MockCacheService {
 
 impl MockCacheService {
     fn seeded(key: &str, value: String) -> Self {
-        Self { store: Mutex::new(Some((key.to_string(), value))) }
+        Self {
+            store: Mutex::new(Some((key.to_string(), value))),
+        }
     }
 }
 
 #[async_trait]
 impl CacheService for MockCacheService {
     async fn get_stats(&self) -> anyhow::Result<CacheStats> {
-        unreachable!("not used by process_localized_cached")
+        std::unreachable!("not used by process_localized_cached")
     }
     async fn get_keys(&self) -> anyhow::Result<Vec<CacheKeyInfo>> {
-        unreachable!("not used by process_localized_cached")
+        std::unreachable!("not used by process_localized_cached")
     }
     async fn flush_all(&self) -> anyhow::Result<()> {
-        unreachable!("not used by process_localized_cached")
+        std::unreachable!("not used by process_localized_cached")
     }
     async fn delete_key(&self, _key: String) -> anyhow::Result<()> {
-        unreachable!("not used by process_localized_cached")
+        std::unreachable!("not used by process_localized_cached")
     }
 
     async fn get_raw(&self, key: &str) -> Option<String> {
@@ -48,7 +50,11 @@ impl CacheService for MockCacheService {
 async fn cache_hit_returns_cached_result_without_fetching() {
     let cached = MarkdownResult {
         html: "<p>cached</p>".to_string(),
-        headings: vec![HeadingItem { level: 2, text: "Heading".to_string(), id: "heading".to_string() }],
+        headings: vec![HeadingItem {
+            level: 2,
+            text: "Heading".to_string(),
+            id: "heading".to_string(),
+        }],
     };
     let raw = serde_json::to_string(&cached).unwrap();
     let cache = MockCacheService::seeded("k", raw);
@@ -69,8 +75,8 @@ async fn corrupted_cache_entry_falls_through_to_fetch_and_errors_on_bad_url() {
 
     // Garbage stored value must NOT be trusted as-is — falls through to a
     // real fetch, which then fails against this deliberately invalid URL.
-    let result = process_localized_cached(&cache, "k", "http://example.invalid/x.md", "id", 60).await;
+    let result =
+        process_localized_cached(&cache, "k", "http://example.invalid/x.md", "id", 60).await;
 
     assert!(result.is_err());
 }
-

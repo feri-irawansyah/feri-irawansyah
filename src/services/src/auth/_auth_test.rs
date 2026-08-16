@@ -5,7 +5,6 @@ use modules::auth::{AuthRepository, SessionView, UserView};
 use std::sync::Mutex;
 
 // ── Mock repository ───────────────────────────────────────────────────────────
-
 struct MockAuthRepo {
     users: Mutex<Vec<UserView>>,
     sessions: Mutex<Vec<SessionView>>,
@@ -86,7 +85,6 @@ impl AuthRepository for MockAuthRepo {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
 fn hash_password(password: &str) -> String {
     use argon2::PasswordHasher;
     use argon2::password_hash::{SaltString, rand_core::OsRng};
@@ -125,7 +123,6 @@ fn future_session(token: &str) -> SessionView {
 }
 
 // ── login rate limiter (cache-backed) ───────────────────────────────────────
-
 #[tokio::test]
 async fn rate_limiter_not_locked_initially() {
     let svc = make_svc(MockAuthRepo::new(vec![]));
@@ -162,7 +159,6 @@ async fn rate_limiter_ips_are_independent() {
 }
 
 // ── validate_access_token ─────────────────────────────────────────────────────
-
 #[test]
 fn validate_token_valid() {
     let svc = make_svc(MockAuthRepo::new(vec![]));
@@ -211,7 +207,6 @@ fn validate_token_expired_rejected() {
 }
 
 // ── login ─────────────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn login_success_returns_tokens_with_correct_claims() {
     let svc = make_svc(MockAuthRepo::new(vec![test_user()]));
@@ -274,7 +269,6 @@ async fn login_success_clears_failure_counter() {
 }
 
 // ── refresh ───────────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn refresh_valid_session_returns_new_tokens() {
     let repo = MockAuthRepo::new(vec![test_user()]).with_session(future_session("refresh_tok"));
@@ -318,7 +312,6 @@ async fn refresh_unknown_token_fails() {
 }
 
 // ── logout ────────────────────────────────────────────────────────────────────
-
 #[tokio::test]
 async fn logout_invalidates_session() {
     let repo = MockAuthRepo::new(vec![test_user()]).with_session(future_session("logout_tok"));

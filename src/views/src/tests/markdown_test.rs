@@ -20,7 +20,11 @@ fn extracts_single_heading_with_slugified_id() {
             id: "hello-world".to_string(),
         }]
     );
-    assert!(result.html.contains(r#"<h2 id="hello-world">Hello World!</h2>"#));
+    assert!(
+        result
+            .html
+            .contains(r#"<h2 id="hello-world">Hello World!</h2>"#)
+    );
 }
 
 #[test]
@@ -46,7 +50,11 @@ fn highlights_fenced_code_block_with_language_label() {
     let md = "```rust\nfn main() {}\n```";
     let result = render(md).unwrap();
     assert!(result.html.contains(r#"class="code-wrapper""#));
-    assert!(result.html.contains(r#"<span class="code-lang">rust</span>"#));
+    assert!(
+        result
+            .html
+            .contains(r#"<span class="code-lang">rust</span>"#)
+    );
     assert!(result.html.contains(r#"<pre class="code-block"><code>"#));
     // Syntect splits the source into one highlighting `<span>` per token
     // (`fn `, `main`, `() {}`), so the code itself won't appear as one
@@ -62,7 +70,11 @@ fn highlights_fenced_code_block_with_language_label() {
 fn fenced_code_block_without_language_labeled_plain() {
     let md = "```\nno lang here\n```";
     let result = render(md).unwrap();
-    assert!(result.html.contains(r#"<span class="code-lang">plain</span>"#));
+    assert!(
+        result
+            .html
+            .contains(r#"<span class="code-lang">plain</span>"#)
+    );
 }
 
 // ── <details><summary> handling ─────────────────────────────────────────────
